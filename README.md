@@ -60,12 +60,14 @@ tree under `.deps/`; that directory is generated and should not be committed.
 Run the fetcher from the repository root:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\fetch-wasm-components.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\fetch.ps1
 ```
 
 The process-scoped execution-policy option is useful on Windows hosts that block
 local scripts; it does not change the machine or user policy. If local scripts are
-already permitted, `.\scripts\fetch-wasm-components.ps1` is equivalent.
+already permitted, `.\fetch.ps1` is equivalent. The wrapper invokes
+`scripts/fetch-wasm-components.ps1`; its optional `-LockFile` parameter selects a
+different lock file.
 
 An existing component directory is treated as complete and up to date. This keeps
 normal runs fast and preserves any local investigation under `.deps`. To discard
@@ -73,11 +75,12 @@ the entire generated tree, cached downloads, and any local changes, then fetch a
 verify everything again, run:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\fetch-wasm-components.ps1 -Clean
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\fetchClean.ps1
 ```
 
 `-Clean` is deliberately limited to this repository's `.deps` directory. Source
-submodules and project files are never removed by the script.
+submodules and project files are never removed by the script. If local scripts are
+already permitted, the short command is `.\fetchClean.ps1`.
 
 There are four kinds of generated directory. Keeping them separate makes the
 origin of every file visible and lets the assembled tree be deleted and rebuilt at
@@ -219,12 +222,75 @@ components in dependency order and use the upstream top-level CMake file as a
 reference. This avoids coupling released components to whatever component versions
 happen to be present on the fork's `master` branch.
 
+## Build tools
+
+Install CMake using the Windows x64 installer from the official
+[CMake download page](https://cmake.org/download/). During installation, select
+the option to add CMake to `PATH`, then open a new terminal and check the
+installation:
+
+```powershell
+cmake --version
+```
+
+Emscripten is installed separately through `emsdk`; `build.ps1` activates the SDK
+before configuring the project. Git is required by the source fetcher, PowerShell
+runs the project scripts, and Python can serve the generated browser files.
+
+This project has been built on Windows with:
+
+| Tool | Tested version |
+| --- | --- |
+| CMake | 4.4.3 |
+| Emscripten (`emcc`) | 6.0.9 |
+| Git for Windows | 2.51.0.windows.2 |
+| Windows PowerShell | 5.1.26100.9278 |
+| Python | 3.13.11 |
+
+## First browser test
+
+The first target is `brookesia_layout_test`. It uses Brookesia's existing GUI
+example registry and runner rather than choosing a full product app yet. The
+example menu covers JSON layouts, widgets, styles, events, and pointer input, so it
+is a useful test of the shared UI code. It also keeps Wi-Fi and other application
+services out of the first build. Once this works, `brookesia_app_settings` is a
+good first complete app because it is already used by the firmware project.
+
+Fetch the locked sources and build:
+
+```powershell
+.\fetch.ps1
+.\build.ps1
+```
+
+`build.ps1` activates Emscripten, configures the `wasm-debug` preset, and builds
+the layout test. Use `build.ps1 -Fresh` to discard CMake's cached configuration.
+If emsdk is installed somewhere else, use
+`build.ps1 -EmsdkPath C:\path\to\emsdk`.
+
+`emcmake` selects Emscripten's C and C++ compilers. CMake is a separate host tool
+and must also be available on `PATH`. The VS Code CMake Tools extension provides
+editor integration but does not install CMake itself. The output is
+`build-wasm/brookesia_layout_test.html` with its JavaScript and WebAssembly files.
+Serve `build-wasm` over HTTP, for example:
+
+```powershell
+python -m http.server 8000 --directory build-wasm
+```
+
+Then open `http://localhost:8000/brookesia_layout_test.html`. Do not open the HTML
+directly from the filesystem because browsers restrict resources loaded by WASM.
+
+The build deliberately consumes only `.deps/assembled`; it does not use ESP-IDF or
+compile against the reference submodule. Delete `build-wasm` whenever a completely
+fresh CMake configuration is required. Use `fetchClean.ps1` only when the fetched
+source tree itself must also be recreated.
+
 ## Roadmap
 
 ### 1. Define the first runnable target
 
-- Choose one small Brookesia screen from the ESP-IDF project as the acceptance
-  test.
+- Build the Brookesia GUI example menu as the first acceptance test.
 - Fix the logical display size, colour depth, input methods, and required assets.
 - List which parts of the screen use portable Brookesia/LVGL APIs and which call
   ESP-IDF directly.
@@ -332,6 +398,8 @@ thirdparty/
 cmake/                 # host and Emscripten build helpers
 scripts/
   fetch-wasm-components.ps1
+fetch.ps1
+fetchClean.ps1
 wasm-components.lock.json
 platform/
   esp_idf/             # existing device adapters
