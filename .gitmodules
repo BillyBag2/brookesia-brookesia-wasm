@@ -1,0 +1,6 @@
+[submodule "brookesia-brookesia"]
+	path = brookesia-brookesia
+	url = git@github.com:BillyBag2/brookesia-brookesia.git
+[submodule "thirdparty/esp-brookesia"]
+	path = thirdparty/esp-brookesia
+	url = git@github.com:BillyBag2/esp-brookesia.git
