@@ -53,9 +53,31 @@ fork: the two repositories have different roles.
 
 The WASM build should assemble a correctly shaped source tree without invoking
 ESP-IDF or using the firmware project's generated `managed_components` directory.
-A committed `wasm-components.lock.yml` will list every source, exact version or Git
+A committed `wasm-components.lock.json` lists every source, exact version or Git
 commit, integrity hash, and destination. A standalone fetch script will create the
 tree under `.deps/`; that directory is generated and should not be committed.
+
+Run the fetcher from the repository root:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\fetch-wasm-components.ps1
+```
+
+The process-scoped execution-policy option is useful on Windows hosts that block
+local scripts; it does not change the machine or user policy. If local scripts are
+already permitted, `.\scripts\fetch-wasm-components.ps1` is equivalent.
+
+An existing component directory is treated as complete and up to date. This keeps
+normal runs fast and preserves any local investigation under `.deps`. To discard
+the entire generated tree, cached downloads, and any local changes, then fetch and
+verify everything again, run:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\fetch-wasm-components.ps1 -Clean
+```
+
+`-Clean` is deliberately limited to this repository's `.deps` directory. Source
+submodules and project files are never removed by the script.
 
 There are four kinds of generated directory. Keeping them separate makes the
 origin of every file visible and lets the assembled tree be deleted and rebuilt at
@@ -310,7 +332,7 @@ thirdparty/
 cmake/                 # host and Emscripten build helpers
 scripts/
   fetch-wasm-components.ps1
-wasm-components.lock.yml
+wasm-components.lock.json
 platform/
   esp_idf/             # existing device adapters
   web/                 # browser adapters and JS bindings

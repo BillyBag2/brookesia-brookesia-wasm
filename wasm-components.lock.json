@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "registryStorageUrl": "https://components-file.espressif.com/",
+  "registry": [
+    {
+      "name": "espressif/brookesia_app_settings",
+      "version": "0.8.3",
+      "componentHash": "46dd5de734a74672203240420fd52967b3f61f9882b600813d24b1fccd3204a5",
+      "group": "managed_components",
+      "destination": "esp-brookesia/app/brookesia_app_settings"
+    },
+    {
+      "name": "espressif/brookesia_gui_interface",
+      "version": "0.8.2",
+      "componentHash": "8fdb7914e96fb869f2b4cd9bc590af06e1928a78cb1f64526f6cc2979080a2a2",
+      "group": "managed_components",
+      "destination": "esp-brookesia/gui/brookesia_gui_interface"
+    },
+    {
+      "name": "espressif/brookesia_gui_lvgl",
+      "version": "0.8.4",
+      "componentHash": "3d175facb2dc14235ce2a78afb2db44ec5971d99a2bfdb984d95bb32683947b8",
+      "group": "managed_components",
+      "destination": "esp-brookesia/gui/brookesia_gui_lvgl"
+    },
+    {
+      "name": "espressif/brookesia_hal_interface",
+      "version": "0.8.2",
+      "componentHash": "aef0a1f2346c1aa7d8b9675042801bd54664f9f9ffb9c0cfe4e7500aa07d0b53",
+      "group": "managed_components",
+      "destination": "esp-brookesia/hal/brookesia_hal_interface"
+    },
+    {
+      "name": "espressif/brookesia_lib_utils",
+      "version": "0.8.2",
+      "componentHash": "d68f7e6dcb2f40d4d69f875c2c5e0051b5d8cf3971cdbe35369f2f3f2098311d",
+      "group": "managed_components",
+      "destination": "esp-brookesia/utils/brookesia_lib_utils"
+    },
+    {
+      "name": "espressif/brookesia_runtime_manager",
+      "version": "0.8.2",
+      "componentHash": "c98f5275d666e62dc8384a164b240ec2497885aacf3c2d9d81cb4282433008d8",
+      "group": "managed_components",
+      "destination": "esp-brookesia/runtime/brookesia_runtime_manager"
+    },
+    {
+      "name": "espressif/brookesia_service_device",
+      "version": "0.8.2",
+      "componentHash": "c2439f25fcdb6a4ef556d5537fd4aa89a5bcdda28eb8a08b983168db2662511d",
+      "group": "managed_components",
+      "destination": "esp-brookesia/service/system/brookesia_service_device"
+    },
+    {
+      "name": "espressif/brookesia_service_display",
+      "version": "0.8.2",
+      "componentHash": "2cd3731644ea9f7b93ad439f8de6210baeb1a85fec7bcfe09a97ec285aabd4be",
+      "group": "managed_components",
+      "destination": "esp-brookesia/service/media/brookesia_service_display"
+    },
+    {
+      "name": "espressif/brookesia_service_helper",
+      "version": "0.8.4",
+      "componentHash": "86207780be249fd45d32d0d263d011bd5415ffb61ef219ff4a70fe35b63277d7",
+      "group": "managed_components",
+      "destination": "esp-brookesia/service/framework/brookesia_service_helper"
+    },
+    {
+      "name": "espressif/brookesia_service_manager",
+      "version": "0.8.2",
+      "componentHash": "4d8d063bcb368c77de089c15f494365cf38a4f560313c583d464d58b0bd05aa2",
+      "group": "managed_components",
+      "destination": "esp-brookesia/service/framework/brookesia_service_manager"
+    },
+    {
+      "name": "espressif/brookesia_service_sntp",
+      "version": "0.8.2",
+      "componentHash": "e91ca36b3ffd4abc97ff7c5b05d3cec574189395115bac2ceffdc5ecb28c515c",
+      "group": "managed_components",
+      "destination": "esp-brookesia/service/network/brookesia_service_sntp"
+    },
+    {
+      "name": "espressif/brookesia_service_storage",
+      "version": "0.8.3",
+      "componentHash": "2746c32429841b24b25df6d5469a6fcb190f66917b092c574b796d83e229bcfe",
+      "group": "managed_components",
+      "destination": "esp-brookesia/service/system/brookesia_service_storage"
+    },
+    {
+      "name": "espressif/brookesia_service_wifi",
+      "version": "0.8.2",
+      "componentHash": "44f63bc4c9814b9a335f66c42a4c9bb360ce4a88e899490fa59683851a22bbea",
+      "group": "managed_components",
+      "destination": "esp-brookesia/service/network/brookesia_service_wifi"
+    },
+    {
+      "name": "espressif/brookesia_system_core",
+      "version": "0.8.4",
+      "componentHash": "58764bb8065cba92bf576c788cf6c3bb0964c39eb4758cfe19095972d5a46152",
+      "group": "managed_components",
+      "destination": "esp-brookesia/system/brookesia_system_core"
+    },
+    {
+      "name": "espressif/brookesia_system_super",
+      "version": "0.8.3",
+      "componentHash": "4d9cd6f63c633ac7580525c3ee1fc5e46543be5d35967888780fb67e79928989",
+      "group": "managed_components",
+      "destination": "esp-brookesia/system/brookesia_system_super"
+    },
+    {
+      "name": "lvgl/lvgl",
+      "version": "9.4.0",
+      "componentHash": "17e68bfd21f0edf4c3ee838e2273da840bf3930e5dbc3bfa6c1190c3aed41f9f",
+      "group": "managed_components",
+      "destination": "external/lvgl"
+    },
+    {
+      "name": "espressif/brookesia_runtime_wasm",
+      "version": "0.8.2",
+      "componentHash": "c1940ad59b3abac113ac0d3019c094f25a18df298c356606ad8d0e93920c86cf",
+      "group": "additional_components",
+      "destination": "esp-brookesia/runtime/brookesia_runtime_wasm"
+    },
+    {
+      "name": "espressif/wasm-micro-runtime",
+      "version": "2.4.0",
+      "componentHash": "6eaf298d45ea05967ca1d297f606613a7bc71cde61beca741fefbc7cfe721253",
+      "group": "additional_components",
+      "destination": "external/wasm-micro-runtime"
+    }
+  ],
+  "git": [
+    {
+      "name": "brookesia_hal_wasm",
+      "repository": "https://github.com/espressif/esp-brookesia.git",
+      "commit": "6a087b6d76e989802b72fdb835928b273af76af8",
+      "path": "hal/brookesia_hal_wasm",
+      "destination": "esp-brookesia/hal/brookesia_hal_wasm"
+    }
+  ]
+}
