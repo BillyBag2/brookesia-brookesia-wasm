@@ -263,6 +263,17 @@ Fetch the locked sources and build:
 .\build.ps1
 ```
 
+If Windows PowerShell reports that running scripts is disabled, use a
+process-scoped execution-policy bypass:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\fetch.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
+```
+
+This applies only to the new PowerShell process and does not change the machine
+or user execution policy. Do not add a trailing `\` after the script filename.
+
 `build.ps1` activates Emscripten, configures the `wasm-debug` preset, and builds
 the layout test. Use `build.ps1 -Fresh` to discard CMake's cached configuration.
 If emsdk is installed somewhere else, use
@@ -272,14 +283,24 @@ If emsdk is installed somewhere else, use
 and must also be available on `PATH`. The VS Code CMake Tools extension provides
 editor integration but does not install CMake itself. The output is
 `build-wasm/brookesia_layout_test.html` with its JavaScript and WebAssembly files.
-Serve `build-wasm` over HTTP, for example:
+Launch the browser test and its local server with:
 
 ```powershell
-python -m http.server 8000 --directory build-wasm
+.\host.ps1
 ```
 
-Then open `http://localhost:8000/brookesia_layout_test.html`. Do not open the HTML
-directly from the filesystem because browsers restrict resources loaded by WASM.
+If local scripts are blocked, use:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\host.ps1
+```
+
+The script prints the complete URL, opens it in the default browser, and serves
+`build-wasm` until you press Ctrl+C. Most Windows terminals make the printed URL
+clickable. Use `host.ps1 -Port 8080` to select another port or
+`host.ps1 -NoBrowser` to start the server without opening a browser. Do not open
+the HTML directly from the filesystem because browsers restrict resources loaded
+by WASM.
 
 The build deliberately consumes only `.deps/assembled`; it does not use ESP-IDF or
 compile against the reference submodule. Delete `build-wasm` whenever a completely
@@ -400,6 +421,7 @@ scripts/
   fetch-wasm-components.ps1
 fetch.ps1
 fetchClean.ps1
+host.ps1
 wasm-components.lock.json
 platform/
   esp_idf/             # existing device adapters

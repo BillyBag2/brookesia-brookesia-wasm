@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.24)
 
 project(brookesia_wasm LANGUAGES C CXX)
 
@@ -52,7 +52,7 @@ target_compile_options(brookesia_hal_wasm_impl PUBLIC "SHELL:-sUSE_SDL=2")
 add_executable(brookesia_layout_test tests/layout/main.cpp)
 target_link_libraries(brookesia_layout_test PRIVATE
     brookesia::gui_lvgl
-    brookesia::gui_interface_examples)
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,brookesia::gui_interface_examples>")
 target_link_options(brookesia_layout_test PRIVATE
     "SHELL:-sUSE_SDL=2"
     "SHELL:-sALLOW_MEMORY_GROWTH=1"
