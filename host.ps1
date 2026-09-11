@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 $buildDirectory = Join-Path $PSScriptRoot "build/bb-layout"
-$entryPage = Join-Path $buildDirectory "brookesia_layout_test.html"
+$entryPage = Join-Path $buildDirectory "bb-layout.html"
 
 if (-not (Test-Path -LiteralPath $entryPage -PathType Leaf)) {
     throw "The browser build was not found. Run .\build-bb-layout.ps1 first."
@@ -23,7 +23,7 @@ if ($null -eq $python) {
     throw "Python was not found on PATH. Install Python or add it to PATH."
 }
 
-$url = "http://localhost:$Port/brookesia_layout_test.html"
+$url = "http://localhost:$Port/bb-layout.html"
 $server = Start-Process `
     -FilePath $python.Source `
     -ArgumentList $pythonArguments `

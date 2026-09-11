@@ -68,4 +68,4 @@ try {
     Pop-Location
 }
 
-Write-Host "Built build/bb-layout/brookesia_layout_test.html"
+Write-Host "Built build/bb-layout/bb-layout.html"

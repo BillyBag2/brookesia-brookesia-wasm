@@ -301,7 +301,7 @@ If emsdk is installed somewhere else, use
 `emcmake` selects Emscripten's C and C++ compilers. CMake is a separate host tool
 and must also be available on `PATH`. The VS Code CMake Tools extension provides
 editor integration but does not install CMake itself. The output is
-`build/bb-layout/brookesia_layout_test.html` with its JavaScript and WebAssembly files.
+`build/bb-layout/bb-layout.html` with its JavaScript and WebAssembly files.
 Launch the browser test and its local server with:
 
 ```powershell

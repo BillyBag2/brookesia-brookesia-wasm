@@ -58,4 +58,4 @@ target_link_options(brookesia_layout_test PRIVATE
     "SHELL:-sUSE_SDL=2"
     "SHELL:-sALLOW_MEMORY_GROWTH=1"
     "SHELL:-sASYNCIFY=1")
-set_target_properties(brookesia_layout_test PROPERTIES SUFFIX ".html")
+set_target_properties(brookesia_layout_test PROPERTIES OUTPUT_NAME "bb-layout" SUFFIX ".html")
