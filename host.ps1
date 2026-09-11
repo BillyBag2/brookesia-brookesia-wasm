@@ -6,11 +6,11 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$buildDirectory = Join-Path $PSScriptRoot "build-wasm"
+$buildDirectory = Join-Path $PSScriptRoot "build-bb-layout"
 $entryPage = Join-Path $buildDirectory "brookesia_layout_test.html"
 
 if (-not (Test-Path -LiteralPath $entryPage -PathType Leaf)) {
-    throw "The browser build was not found. Run .\build.ps1 first."
+    throw "The browser build was not found. Run .\build-bb-layout.ps1 first."
 }
 
 $python = Get-Command python -ErrorAction SilentlyContinue

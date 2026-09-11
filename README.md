@@ -234,7 +234,7 @@ installation:
 cmake --version
 ```
 
-Emscripten is installed separately through `emsdk`; `build.ps1` activates the SDK
+Emscripten is installed separately through `emsdk`; `build-bb-layout.ps1` activates the SDK
 before configuring the project. Git is required by the source fetcher, PowerShell
 runs the project scripts, and Python can serve the generated browser files.
 
@@ -261,7 +261,7 @@ Fetch the locked sources and build:
 
 ```powershell
 .\fetch.ps1
-.\build.ps1
+.\build-bb-layout.ps1
 ```
 
 If Windows PowerShell reports that running scripts is disabled, use a
@@ -269,25 +269,25 @@ process-scoped execution-policy bypass:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\fetch.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build-bb-layout.ps1
 ```
 
 This applies only to the new PowerShell process and does not change the machine
 or user execution policy. Do not add a trailing `\` after the script filename.
 
-`build.ps1` activates Emscripten, configures the `wasm-debug` preset in
+`build-bb-layout.ps1` activates Emscripten, configures the `wasm-debug` preset in
 `examples/brookesia-brookesia/layout`, and builds the layout example. Its
 `CMakeLists.txt` and `CMakePresets.json` live alongside `main.cpp`; output remains
-in the repository's `build-wasm` directory, which `host.ps1` serves.
-Use `build.ps1 -Fresh` to discard CMake's cached configuration. Run this once
+in the repository's `build-bb-layout` directory, which `host.ps1` serves.
+Use `build-bb-layout.ps1 -Fresh` to discard CMake's cached configuration. Run this once
 after moving from the former root CMake project to clear its old source path.
 If emsdk is installed somewhere else, use
-`build.ps1 -EmsdkPath C:\path\to\emsdk`.
+`build-bb-layout.ps1 -EmsdkPath C:\path\to\emsdk`.
 
 `emcmake` selects Emscripten's C and C++ compilers. CMake is a separate host tool
 and must also be available on `PATH`. The VS Code CMake Tools extension provides
 editor integration but does not install CMake itself. The output is
-`build-wasm/brookesia_layout_test.html` with its JavaScript and WebAssembly files.
+`build-bb-layout/brookesia_layout_test.html` with its JavaScript and WebAssembly files.
 Launch the browser test and its local server with:
 
 ```powershell
@@ -301,14 +301,14 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\host.ps1
 ```
 
 The script prints the complete URL, opens it in the default browser, and serves
-`build-wasm` until you press Ctrl+C. Most Windows terminals make the printed URL
+`build-bb-layout` until you press Ctrl+C. Most Windows terminals make the printed URL
 clickable. Use `host.ps1 -Port 8080` to select another port or
 `host.ps1 -NoBrowser` to start the server without opening a browser. Do not open
 the HTML directly from the filesystem because browsers restrict resources loaded
 by WASM.
 
 The build deliberately consumes only `.deps/assembled`; it does not use ESP-IDF or
-compile against the reference submodule. Delete `build-wasm` whenever a completely
+compile against the reference submodule. Delete `build-bb-layout` whenever a completely
 fresh CMake configuration is required. Use `fetchClean.ps1` only when the fetched
 source tree itself must also be recreated.
 
