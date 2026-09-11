@@ -49,7 +49,7 @@ add_subdirectory(
 # The HAL has the same compile/link mismatch for Emscripten's SDL2 port.
 target_compile_options(brookesia_hal_wasm_impl PUBLIC "SHELL:-sUSE_SDL=2")
 
-add_executable(brookesia_layout_test tests/layout/main.cpp)
+add_executable(brookesia_layout_test examples/brookesia-brookesia/layout/main.cpp)
 target_link_libraries(brookesia_layout_test PRIVATE
     brookesia::gui_lvgl
     "$<LINK_LIBRARY:WHOLE_ARCHIVE,brookesia::gui_interface_examples>")
