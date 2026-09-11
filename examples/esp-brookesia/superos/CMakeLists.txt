@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(brookesia_superos_wasm LANGUAGES C CXX)
 if(NOT EMSCRIPTEN)
-    message(FATAL_ERROR "Configure with Emscripten or run build-eb-wasm.ps1")
+    message(FATAL_ERROR "Configure with Emscripten or run build-eb-superos.ps1")
 endif()
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 23)

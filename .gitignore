@@ -1,4 +1,2 @@
 .deps/
-build-wasm/
-build-bb-layout/
-build-be-superos/
+/build/

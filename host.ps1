@@ -6,7 +6,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$buildDirectory = Join-Path $PSScriptRoot "build-bb-layout"
+$buildDirectory = Join-Path $PSScriptRoot "build/bb-layout"
 $entryPage = Join-Path $buildDirectory "brookesia_layout_test.html"
 
 if (-not (Test-Path -LiteralPath $entryPage -PathType Leaf)) {

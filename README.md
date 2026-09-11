@@ -225,8 +225,8 @@ happen to be present on the fork's `master` branch.
 
 ## SuperOS component build
 
-Run `./build-eb-wasm.ps1` to configure
-`examples/esp-brookesia/superos/CMakeLists.txt` and build into `build-be-superos`.
+Run `./build-eb-superos.ps1` to configure
+`examples/esp-brookesia/superos/CMakeLists.txt` and build into `build/eb-superos`.
 Use `-Fresh` to reset CMake configuration or `-EmsdkPath` to select another SDK.
 The project follows `ONE_IDEA.md` and adds `thirdparty/esp-brookesia/CMakeLists.txt`
 with the WASM HAL, SuperOS, JavaScript runtime, services, and built-in apps enabled.
@@ -292,7 +292,7 @@ or user execution policy. Do not add a trailing `\` after the script filename.
 `build-bb-layout.ps1` activates Emscripten, configures the `wasm-debug` preset in
 `examples/brookesia-brookesia/layout`, and builds the layout example. Its
 `CMakeLists.txt` and `CMakePresets.json` live alongside `main.cpp`; output remains
-in the repository's `build-bb-layout` directory, which `host.ps1` serves.
+in the repository's `build/bb-layout` directory, which `host.ps1` serves.
 Use `build-bb-layout.ps1 -Fresh` to discard CMake's cached configuration. Run this once
 after moving from the former root CMake project to clear its old source path.
 If emsdk is installed somewhere else, use
@@ -301,7 +301,7 @@ If emsdk is installed somewhere else, use
 `emcmake` selects Emscripten's C and C++ compilers. CMake is a separate host tool
 and must also be available on `PATH`. The VS Code CMake Tools extension provides
 editor integration but does not install CMake itself. The output is
-`build-bb-layout/brookesia_layout_test.html` with its JavaScript and WebAssembly files.
+`build/bb-layout/brookesia_layout_test.html` with its JavaScript and WebAssembly files.
 Launch the browser test and its local server with:
 
 ```powershell
@@ -315,14 +315,14 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\host.ps1
 ```
 
 The script prints the complete URL, opens it in the default browser, and serves
-`build-bb-layout` until you press Ctrl+C. Most Windows terminals make the printed URL
+`build/bb-layout` until you press Ctrl+C. Most Windows terminals make the printed URL
 clickable. Use `host.ps1 -Port 8080` to select another port or
 `host.ps1 -NoBrowser` to start the server without opening a browser. Do not open
 the HTML directly from the filesystem because browsers restrict resources loaded
 by WASM.
 
 The build deliberately consumes only `.deps/assembled`; it does not use ESP-IDF or
-compile against the reference submodule. Delete `build-bb-layout` whenever a completely
+compile against the reference submodule. Delete `build/bb-layout` whenever a completely
 fresh CMake configuration is required. Use `fetchClean.ps1` only when the fetched
 source tree itself must also be recreated.
 
@@ -435,11 +435,16 @@ brookesia-brookesia/   # existing ESP-IDF firmware project (submodule)
 thirdparty/
   esp-brookesia/       # upstream reference and development fork (submodule)
 .deps/                 # generated, version-locked WASM source tree
+build/                 # generated outputs (ignored by Git)
+  bb-layout/
+  eb-superos/
 cmake/                 # host and Emscripten build helpers
 scripts/
   fetch-wasm-components.ps1
 fetch.ps1
 fetchClean.ps1
+build-bb-layout.ps1
+build-eb-superos.ps1
 host.ps1
 wasm-components.lock.json
 platform/

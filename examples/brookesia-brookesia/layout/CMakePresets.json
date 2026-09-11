@@ -5,7 +5,7 @@
       "name": "wasm-debug",
       "displayName": "Brookesia WASM (Debug)",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/../../../build-bb-layout",
+      "binaryDir": "${sourceDir}/../../../build/bb-layout",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }

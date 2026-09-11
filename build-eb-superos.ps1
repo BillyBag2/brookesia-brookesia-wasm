@@ -5,7 +5,7 @@ param(
 )
 $ErrorActionPreference = "Stop"
 $sourceDirectory = Join-Path $PSScriptRoot "examples\esp-brookesia\superos"
-$buildDirectory = Join-Path $PSScriptRoot "build-be-superos"
+$buildDirectory = Join-Path $PSScriptRoot "build/eb-superos"
 $emsdkEnvironment = Join-Path $EmsdkPath "emsdk_env.ps1"
 if (-not (Test-Path -LiteralPath $emsdkEnvironment -PathType Leaf)) {
     throw "Emscripten environment script not found: $emsdkEnvironment. Pass -EmsdkPath to select your SDK."
