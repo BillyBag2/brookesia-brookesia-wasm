@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <emscripten/eventloop.h>
 
 #include "brookesia/gui_interface.hpp"
 #include "brookesia/gui_lvgl/backend.hpp"
@@ -23,6 +24,20 @@ using DisplayHelper = service::helper::Display;
 service::ServiceBinding display_binding;
 std::unique_ptr<gui::Runtime> runtime;
 std::unique_ptr<gui::examples::ExampleRunner> runner;
+int runner_interval = 0;
+
+void process_example_loop(void *)
+{
+    try {
+        gui::lvgl::lock_thread();
+        lib_utils::FunctionGuard unlock_guard(gui::lvgl::unlock_thread);
+        runtime->process_backend();
+        runner->process_pending();
+    } catch (const std::exception &error) {
+        emscripten_clear_interval(runner_interval);
+        std::cerr << "Example processing failed: " << error.what() << '\n';
+    }
+}
 
 int start_layout_test()
 {
@@ -112,6 +127,9 @@ int start_layout_test()
         return EXIT_FAILURE;
     }
 
+    // DisplaySource owns the Emscripten main loop. Process navigation separately,
+    // outside LVGL event dispatch, without replacing that display loop.
+    runner_interval = emscripten_set_interval(process_example_loop, 16.0, nullptr);
     return EXIT_SUCCESS;
 }
 
