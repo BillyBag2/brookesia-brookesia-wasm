@@ -217,7 +217,8 @@ path. The existing full `thirdparty/esp-brookesia` submodule is therefore suitab
 as a reference and development checkout. The generated sparse copy is better for
 assembling the released WASM dependency tree.
 
-The root WASM `CMakeLists.txt` belongs to this project. It should add the generated
+The layout example's `examples/brookesia-brookesia/layout/CMakeLists.txt` belongs
+to this project. It should add the generated
 components in dependency order and use the upstream top-level CMake file as a
 reference. This avoids coupling released components to whatever component versions
 happen to be present on the fork's `master` branch.
@@ -274,8 +275,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build.ps1
 This applies only to the new PowerShell process and does not change the machine
 or user execution policy. Do not add a trailing `\` after the script filename.
 
-`build.ps1` activates Emscripten, configures the `wasm-debug` preset, and builds
-the layout test. Use `build.ps1 -Fresh` to discard CMake's cached configuration.
+`build.ps1` activates Emscripten, configures the `wasm-debug` preset in
+`examples/brookesia-brookesia/layout`, and builds the layout example. Its
+`CMakeLists.txt` and `CMakePresets.json` live alongside `main.cpp`; output remains
+in the repository's `build-wasm` directory, which `host.ps1` serves.
+Use `build.ps1 -Fresh` to discard CMake's cached configuration. Run this once
+after moving from the former root CMake project to clear its old source path.
 If emsdk is installed somewhere else, use
 `build.ps1 -EmsdkPath C:\path\to\emsdk`.
 
@@ -428,7 +433,10 @@ platform/
   web/                 # browser adapters and JS bindings
 apps/                  # portable C++ demo applications
 web/                   # HTML/CSS/JavaScript shell
-tests/                 # portable and browser smoke tests
+examples/
+  brookesia-brookesia/
+    layout/            # main.cpp, CMakeLists.txt, and CMakePresets.json
+  esp-brookesia/       # upstream examples
 ```
 
 The first useful milestone is deliberately narrow: one statically linked C++ app,

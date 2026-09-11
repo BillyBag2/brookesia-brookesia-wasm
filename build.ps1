@@ -6,6 +6,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$projectDirectory = Join-Path $PSScriptRoot "examples\brookesia-brookesia\layout"
 
 $emsdkEnvironment = Join-Path $EmsdkPath "emsdk_env.ps1"
 if (-not (Test-Path -LiteralPath $emsdkEnvironment -PathType Leaf)) {
@@ -52,7 +53,7 @@ if ($Fresh) {
     $configureArguments += "--fresh"
 }
 
-Push-Location $PSScriptRoot
+Push-Location $projectDirectory
 try {
     & emcmake @configureArguments
     if ($LASTEXITCODE -ne 0) {
