@@ -11,16 +11,16 @@
 #include "brookesia/hal_wasm/display/device.hpp"
 #include "brookesia/service_display.hpp"
 #include "brookesia/service_manager.hpp"
-#include "lvgl/lvgl.h"
+#include "brookesia/service_helper.hpp"
+#include "brookesia/lib_utils/function_guard.hpp"
 
 using namespace esp_brookesia;
 
-extern "C" int brookesia_wasm_display_snapshot_width();
-extern "C" int brookesia_wasm_display_snapshot_height();
-extern "C" int brookesia_wasm_display_snapshot_copy_rgba(uint8_t *destination, int destination_size);
-
 namespace {
 
+using DisplayHelper = service::helper::Display;
+// Retain the service binding after main returns to the browser event loop.
+service::ServiceBinding display_binding;
 std::unique_ptr<gui::Runtime> runtime;
 std::unique_ptr<gui::examples::ExampleRunner> runner;
 
@@ -39,6 +39,36 @@ int start_layout_test()
     if (!service::ServiceManager::get_instance().start()) {
         std::cerr << "Could not start the Brookesia service manager\n";
         return EXIT_FAILURE;
+    }
+
+    display_binding = service::ServiceManager::get_instance().bind(DisplayHelper::get_name().data());
+    if (!display_binding.is_valid()) {
+        std::cerr << "Could not bind the display service\n";
+        return EXIT_FAILURE;
+    }
+
+    auto outputs_result = DisplayHelper::call_function_sync<boost::json::array>(
+        DisplayHelper::FunctionId::GetOutputs, service::helper::Timeout(5000));
+    if (!outputs_result) {
+        std::cerr << "Could not get display outputs: " << outputs_result.error() << '\n';
+        return EXIT_FAILURE;
+    }
+    std::vector<DisplayHelper::OutputInfo> outputs;
+    if (!BROOKESIA_DESCRIBE_FROM_JSON(outputs_result.value(), outputs)) {
+        std::cerr << "Could not parse display outputs\n";
+        return EXIT_FAILURE;
+    }
+    for (const auto &output : outputs) {
+        if (!output.backlight.has_value()) {
+            continue;
+        }
+        auto light_result = DisplayHelper::call_function_sync(
+            DisplayHelper::FunctionId::SetBacklightOnOff,
+            static_cast<double>(output.id), true, service::helper::Timeout(5000));
+        if (!light_result) {
+            std::cerr << "Could not turn on display backlight: " << light_result.error() << '\n';
+            return EXIT_FAILURE;
+        }
     }
 
     auto &display_source = gui::lvgl::DisplaySource::get_instance();
@@ -72,39 +102,11 @@ int start_layout_test()
     }
 
     gui::lvgl::lock_thread();
+    lib_utils::FunctionGuard unlock_guard(gui::lvgl::unlock_thread);
     auto result = runner->start();
     if (result) {
         runtime->process_backend();
-
-        auto *diagnostic = lv_label_create(lv_layer_top());
-        lv_label_set_text(diagnostic, "Brookesia WASM - 40 GUI examples loaded");
-        lv_obj_set_style_bg_color(diagnostic, lv_color_hex(0xDC2626), 0);
-        lv_obj_set_style_bg_opa(diagnostic, LV_OPA_COVER, 0);
-        lv_obj_set_style_text_color(diagnostic, lv_color_hex(0xFFFFFF), 0);
-        lv_obj_set_style_pad_all(diagnostic, 8, 0);
-        lv_obj_align(diagnostic, LV_ALIGN_TOP_MID, 0, 8);
-
-        lv_obj_invalidate(lv_screen_active());
-        lv_obj_invalidate(lv_layer_top());
-        lv_refr_now(display_source.display());
-
-        const int snapshot_width = brookesia_wasm_display_snapshot_width();
-        const int snapshot_height = brookesia_wasm_display_snapshot_height();
-        std::vector<uint8_t> snapshot(
-            static_cast<size_t>(snapshot_width) * static_cast<size_t>(snapshot_height) * 4U);
-        const int snapshot_bytes = brookesia_wasm_display_snapshot_copy_rgba(
-                                       snapshot.data(), static_cast<int>(snapshot.size()));
-        size_t non_black_pixels = 0;
-        for (size_t offset = 0; offset + 3 < static_cast<size_t>(snapshot_bytes); offset += 4) {
-            if (snapshot[offset] != 0 || snapshot[offset + 1] != 0 || snapshot[offset + 2] != 0) {
-                ++non_black_pixels;
-            }
-        }
-        std::cout << "Initial LVGL frame: " << snapshot_width << 'x' << snapshot_height
-                  << ", bytes=" << snapshot_bytes
-                  << ", non-black pixels=" << non_black_pixels << '\n';
     }
-    gui::lvgl::unlock_thread();
     if (!result) {
         std::cerr << "Could not mount the Brookesia example menu: " << result.error() << '\n';
         return EXIT_FAILURE;
