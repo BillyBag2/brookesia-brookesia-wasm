@@ -1,15 +1,32 @@
-cd .\thirdparty\esp-brookesia
-
-. C:\tools\emsdk\emsdk_env.ps1
-
-emcmake cmake `
-  -S . `
-  -B build-wasm `
-  -G Ninja `
-  -DCMAKE_BUILD_TYPE=Debug `
-  -DBROOKESIA_BUILD_HAL_WASM=ON `
-  -DBROOKESIA_BUILD_SERVICE_DISPLAY=ON
-
-cmake --build build-wasm
-
-cmake --build build-wasm --target help
+[CmdletBinding()]
+param(
+    [string]$EmsdkPath = "C:\tools\emsdk",
+    [switch]$Fresh
+)
+$ErrorActionPreference = "Stop"
+$sourceDirectory = Join-Path $PSScriptRoot "examples\esp-brookesia\superos"
+$buildDirectory = Join-Path $PSScriptRoot "build-be-superos"
+$emsdkEnvironment = Join-Path $EmsdkPath "emsdk_env.ps1"
+if (-not (Test-Path -LiteralPath $emsdkEnvironment -PathType Leaf)) {
+    throw "Emscripten environment script not found: $emsdkEnvironment. Pass -EmsdkPath to select your SDK."
+}
+foreach ($tool in @("cmake", "ninja")) {
+    if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
+        throw "$tool was not found on PATH. Install it before building."
+    }
+}
+. $emsdkEnvironment
+$configureArguments = @("cmake", "-S", $sourceDirectory, "-B", $buildDirectory,
+    "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Debug")
+if ($Fresh) {
+    $configureArguments += "--fresh"
+}
+& emcmake @configureArguments
+if ($LASTEXITCODE -ne 0) {
+    throw "SuperOS configuration failed with exit code $LASTEXITCODE."
+}
+& cmake --build $buildDirectory
+if ($LASTEXITCODE -ne 0) {
+    throw "SuperOS build failed with exit code $LASTEXITCODE."
+}
+Write-Host "Built SuperOS components in $buildDirectory"

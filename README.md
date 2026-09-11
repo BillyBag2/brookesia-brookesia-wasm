@@ -223,6 +223,20 @@ components in dependency order and use the upstream top-level CMake file as a
 reference. This avoids coupling released components to whatever component versions
 happen to be present on the fork's `master` branch.
 
+## SuperOS component build
+
+Run `./build-eb-wasm.ps1` to configure
+`examples/esp-brookesia/superos/CMakeLists.txt` and build into `build-be-superos`.
+Use `-Fresh` to reset CMake configuration or `-EmsdkPath` to select another SDK.
+The project follows `ONE_IDEA.md` and adds `thirdparty/esp-brookesia/CMakeLists.txt`
+with the WASM HAL, SuperOS, JavaScript runtime, services, and built-in apps enabled.
+Initialize that submodule and run `fetch.ps1` for LVGL first. Upstream fetches
+QuickJS-NG during configuration when no local source is configured.
+
+This builds component libraries and stages upstream resources. A browser
+executable still requires a host `main.cpp` and Emscripten resource packaging;
+`host.ps1` continues to serve the separate layout example.
+
 ## Build tools
 
 Install CMake using the Windows x64 installer from the official
