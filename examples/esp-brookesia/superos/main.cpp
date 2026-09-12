@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+#include <emscripten.h>
 #include "boost/json/array.hpp"
 #include "brookesia/gui_lvgl/backend.hpp"
 #include "brookesia/gui_lvgl/display_source.hpp"
@@ -54,7 +55,52 @@ bool enable_backlights()
     return true;
 }
 
-int start_superos()
+void start_system_after_browser_loop(void *)
+{
+    try {
+        auto &display_source = gui::lvgl::DisplaySource::get_instance();
+        std::cout << "Initializing SuperOS after the browser event loop starts\n";
+
+        system::super::System::Config config;
+        config.core_config.gui_backend = std::make_unique<gui::lvgl::Backend>();
+        config.core_config.environment = {
+            .width_px = static_cast<int32_t>(display_source.width()),
+            .height_px = static_cast<int32_t>(display_source.height()),
+            .density = 1.0F,
+            .font_scale = 1.0F,
+            .language = "en",
+            .theme_id = "default",
+        };
+        config.core_config.start_service_manager = false;
+        config.core_config.install_registered_apps = false;
+        config.core_config.install_package_apps = false;
+        config.core_config.storage.internal_override = system::core::StorageVolume{
+            .id = "wasm_internal",
+            .partition = system::core::StoragePartition::Internal,
+            .mount_point = "/brookesia",
+            .root_path = "/brookesia",
+            .available = true,
+        };
+
+        system_instance = std::make_unique<system::super::System>();
+        auto initialized = system_instance->init(std::move(config));
+        if (!initialized) {
+            std::cerr << "Could not initialize SuperOS: " << initialized.error() << '\n';
+            return;
+        }
+        std::cout << "SuperOS initialized; starting shell\n";
+        auto started = system_instance->start();
+        if (!started) {
+            std::cerr << "Could not start SuperOS: " << started.error() << '\n';
+            return;
+        }
+        std::cout << "SuperOS shell started\n";
+    } catch (const std::exception &error) {
+        std::cerr << "SuperOS startup failed: " << error.what() << '\n';
+    }
+}
+
+int prepare_superos()
 {
     auto &display_device = hal::DisplayWasmDevice::get_instance();
     if (!display_device.configure({
@@ -96,39 +142,10 @@ int start_superos()
         return EXIT_FAILURE;
     }
 
-    system::super::System::Config config;
-    config.core_config.gui_backend = std::make_unique<gui::lvgl::Backend>();
-    config.core_config.environment = {
-        .width_px = static_cast<int32_t>(display_source.width()),
-        .height_px = static_cast<int32_t>(display_source.height()),
-        .density = 1.0F,
-        .font_scale = 1.0F,
-        .language = "en",
-        .theme_id = "default",
-    };
-    config.core_config.start_service_manager = false;
-    config.core_config.install_registered_apps = false;
-    config.core_config.install_package_apps = false;
-    config.core_config.storage.internal_override = system::core::StorageVolume{
-        .id = "wasm_internal",
-        .partition = system::core::StoragePartition::Internal,
-        .mount_point = "/brookesia",
-        .root_path = "/brookesia",
-        .available = true,
-    };
-
-    system_instance = std::make_unique<system::super::System>();
-    auto initialized = system_instance->init(std::move(config));
-    if (!initialized) {
-        std::cerr << "Could not initialize SuperOS: " << initialized.error() << '\n';
-        return EXIT_FAILURE;
-    }
-    auto started = system_instance->start();
-    if (!started) {
-        std::cerr << "Could not start SuperOS: " << started.error() << '\n';
-        return EXIT_FAILURE;
-    }
-
+    // DisplaySource owns the persistent Emscripten loop. Scheduling this after
+    // main returns lets SystemCore's WASM single-thread scheduler use browser
+    // callbacks during its startup work.
+    emscripten_async_call(start_system_after_browser_loop, nullptr, 0);
     return EXIT_SUCCESS;
 }
 
@@ -137,7 +154,7 @@ int start_superos()
 int main()
 {
     try {
-        return start_superos();
+        return prepare_superos();
     } catch (const std::exception &error) {
         std::cerr << "SuperOS startup failed: " << error.what() << '\n';
         return EXIT_FAILURE;

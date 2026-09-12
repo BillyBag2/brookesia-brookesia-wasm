@@ -27,7 +27,7 @@ target_include_directories(lvgl PUBLIC "${REPO_ROOT}/.deps/assembled/external")
 # stages the shell resources beneath ${CMAKE_BINARY_DIR}/brookesia.
 foreach(component IN ITEMS
         LIB_UTILS HAL_INTERFACE HAL_WASM
-        SERVICE_MANAGER SERVICE_HELPER SERVICE_STORAGE SERVICE_WIFI SERVICE_DISPLAY
+        SERVICE_MANAGER SERVICE_HELPER SERVICE_STORAGE SERVICE_DEVICE SERVICE_WIFI SERVICE_DISPLAY
         GUI_INTERFACE GUI_LVGL RUNTIME_MANAGER SYSTEM_CORE SYSTEM_SUPER)
     set(BROOKESIA_BUILD_${component} ON)
 endforeach()
@@ -40,7 +40,8 @@ add_executable(eb_superos main.cpp)
 target_link_libraries(eb_superos PRIVATE
     brookesia::system_super
     brookesia::gui_lvgl
-    brookesia::hal_wasm)
+    brookesia::hal_wasm
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,brookesia::service_device>")
 target_link_options(eb_superos PRIVATE
     "SHELL:-sUSE_SDL=2"
     "SHELL:-sUSE_ZLIB=1"
