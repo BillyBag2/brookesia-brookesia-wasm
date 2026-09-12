@@ -62,6 +62,9 @@ void start_system_after_browser_loop(void *)
         std::cout << "Initializing SuperOS after the browser event loop starts\n";
 
         system::super::System::Config config;
+        // SuperOS normally stores packaged resources beneath internal storage.
+        // In WASM, resources are preloaded at /brookesia while LittleFS is writable.
+        config.resource_root_path = "/brookesia";
         config.core_config.gui_backend = std::make_unique<gui::lvgl::Backend>();
         config.core_config.environment = {
             .width_px = static_cast<int32_t>(display_source.width()),
@@ -77,8 +80,10 @@ void start_system_after_browser_loop(void *)
         config.core_config.storage.internal_override = system::core::StorageVolume{
             .id = "wasm_internal",
             .partition = system::core::StoragePartition::Internal,
-            .mount_point = "/brookesia",
-            .root_path = "/brookesia",
+            // Keep writable system data separate from the preloaded /brookesia
+            // resource archive. StorageWasmDevice exposes this LittleFS volume.
+            .mount_point = "/littlefs",
+            .root_path = "/brookesia/fs/littlefs",
             .available = true,
         };
 

@@ -27,16 +27,25 @@ display, activates the LVGL source, enables the simulated backlight, and starts
 - The executable and its 2.1 MB resource archive build successfully. The
   browser now reaches the WASM display and shows its light-grey LVGL
   background. The SuperOS shell has not yet drawn visible content.
+- The example maps writable internal storage to StorageWasmDevice's LittleFS
+  path, `/brookesia/fs/littlefs`. The preloaded `/brookesia` archive is reserved
+  for shell resources. SuperOS's `resource_root_path` override directs packaged
+  shell assets to that archive while preserving the normal ESP default, where
+  packaged resources live beneath internal storage.
 - System Core requires the Device service even when no applications are enabled.
   `BROOKESIA_BUILD_SERVICE_DEVICE` is therefore part of the minimal component set,
   and its static registration library is linked with `WHOLE_ARCHIVE`.
 - Startup is deferred with `emscripten_async_call` until after `main()` returns,
   because SystemCore uses the browser-backed single-thread task scheduler.
 - Storage cannot be omitted as a workaround: Wi-Fi requires it and Display also
-  links it as a transitive dependency. During `System::init()`, System Core
-  reads storage preferences and enumerates filesystems with synchronous service
-  calls. The WASM task scheduler completes service work through a browser
-  callback, which blocks the single browser thread.
+  links it as a transitive dependency. The WASM scheduler already executes
+  immediate service calls inline, so the remaining initialization block needs
+  evidence before service behavior changes. Temporary `__EMSCRIPTEN__` probes
+  in System Core identify the next initialization step reached; remove them
+  before submitting an upstream PR.
+- SuperOS previously derived both packaged-resource paths and writable app-data
+  paths from internal storage. `resource_root_path` separates those concerns
+  without changing the ESP default. This API is intended for upstream review.
 - The upstream SuperOS lifecycle uses asynchronous services and browser main
   thread execution. If startup blocks, locate the blocking call before adding
   another Emscripten loop; `DisplaySource` already owns one.
@@ -44,10 +53,10 @@ display, activates the LVGL source, enables the simulated backlight, and starts
   shell is visible, then add its dependent services and staged resources.
 - The upstream JavaScript runtime is not enabled in this minimal target, so
   JavaScript package apps are out of scope for this first executable.
-- Upstream work: service `call_function_sync` needs to execute inline when its
-  target is already the WASM browser thread, or System Core needs asynchronous
-  storage initialization. Either change would allow the Storage service back
-  into this build.
+- Potential upstream work: if the probes locate a synchronous wait that cannot
+  complete on the browser thread, retain ESP behavior and add a WASM-specific
+  inline or asynchronous path at that exact boundary. Do not alter generic
+  service scheduling until the blocking call is confirmed.
 - `thirdparty/esp-brookesia` still uses deprecated `FetchContent_Populate` when
   the JavaScript runtime is enabled. That is upstream work and is not changed
   here.
