@@ -23,15 +23,33 @@ set(CONFIG_LV_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(CONFIG_LV_USE_THORVG_INTERNAL OFF CACHE BOOL "" FORCE)
 add_subdirectory("${LVGL_SOURCE_ROOT}" "${CMAKE_BINARY_DIR}/components/lvgl")
 target_include_directories(lvgl PUBLIC "${REPO_ROOT}/.deps/assembled/external")
-# SuperOS selection from ONE_IDEA.md; upstream owns dependencies and resources.
+# Minimal SuperOS selection. Upstream owns component dependency resolution and
+# stages the shell resources beneath ${CMAKE_BINARY_DIR}/brookesia.
 foreach(component IN ITEMS
         LIB_UTILS HAL_INTERFACE HAL_WASM
-        SERVICE_MANAGER SERVICE_HELPER SERVICE_STORAGE SERVICE_HTTP
-        SERVICE_WIFI SERVICE_DISPLAY SERVICE_DEVICE GUI_INTERFACE GUI_LVGL
-        RUNTIME_MANAGER RUNTIME_JS SYSTEM_CORE SYSTEM_SUPER ALL_APPS)
+        SERVICE_MANAGER SERVICE_HELPER SERVICE_STORAGE SERVICE_WIFI SERVICE_DISPLAY
+        GUI_INTERFACE GUI_LVGL RUNTIME_MANAGER SYSTEM_CORE SYSTEM_SUPER)
     set(BROOKESIA_BUILD_${component} ON)
 endforeach()
 add_subdirectory("${BROOKESIA_SOURCE_ROOT}" "${CMAKE_BINARY_DIR}/esp-brookesia")
 # Emscripten ports must also be enabled while compiling consumers.
 target_compile_options(brookesia_lib_utils_impl PUBLIC "SHELL:-sUSE_BOOST_HEADERS=1")
 target_compile_options(brookesia_hal_wasm_impl PUBLIC "SHELL:-sUSE_SDL=2")
+
+add_executable(eb_superos main.cpp)
+target_link_libraries(eb_superos PRIVATE
+    brookesia::system_super
+    brookesia::gui_lvgl
+    brookesia::hal_wasm)
+target_link_options(eb_superos PRIVATE
+    "SHELL:-sUSE_SDL=2"
+    "SHELL:-sUSE_ZLIB=1"
+    "SHELL:-sALLOW_MEMORY_GROWTH=1"
+    "SHELL:-sASYNCIFY=1"
+    "SHELL:--preload-file ${CMAKE_BINARY_DIR}/brookesia@/brookesia")
+set_target_properties(eb_superos PROPERTIES OUTPUT_NAME "eb-superos" SUFFIX ".html")
+
+get_property(superos_resource_targets GLOBAL PROPERTY BROOKESIA_SYSTEM_SUPER_STAGE_TARGETS)
+if(superos_resource_targets)
+    add_dependencies(eb_superos ${superos_resource_targets})
+endif()

@@ -292,7 +292,7 @@ or user execution policy. Do not add a trailing `\` after the script filename.
 `build-bb-layout.ps1` activates Emscripten, configures the `wasm-debug` preset in
 `examples/brookesia-brookesia/layout`, and builds the layout example. Its
 `CMakeLists.txt` and `CMakePresets.json` live alongside `main.cpp`; output remains
-in the repository's `build/bb-layout` directory, which `host.ps1` serves.
+in the repository's `build/bb-layout` directory.
 Use `build-bb-layout.ps1 -Fresh` to discard CMake's cached configuration. Run this once
 after moving from the former root CMake project to clear its old source path.
 If emsdk is installed somewhere else, use
@@ -314,8 +314,10 @@ If local scripts are blocked, use:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\host.ps1
 ```
 
-The script prints the complete URL, opens it in the default browser, and serves
-`build/bb-layout` until you press Ctrl+C. Most Windows terminals make the printed URL
+The script finds every complete HTML, JavaScript, and WebAssembly triplet under
+`build`, copies them to the ignored `output` directory, creates `output/index.html`,
+and opens that page in the default browser. Matching `.data` archives are copied too.
+It serves `output` until you press Ctrl+C. Most Windows terminals make the printed URL
 clickable. Use `host.ps1 -Port 8080` to select another port or
 `host.ps1 -NoBrowser` to start the server without opening a browser. Do not open
 the HTML directly from the filesystem because browsers restrict resources loaded
