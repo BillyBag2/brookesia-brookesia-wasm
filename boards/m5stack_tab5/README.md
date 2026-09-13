@@ -64,3 +64,10 @@ common API, so selecting another board changes the display configuration without
 requiring a board-specific include in `main.cpp`. `DisplayWasmDevice` passes the
 selected width and height through its panel and touch interfaces; LVGL and the
 SuperOS environment then obtain the same dimensions from the active display.
+
+Appearance settings shared with the native firmware come directly from
+`brookesia-brookesia/boards/m5stack_tab5/common/include/brookesia/board/config.hpp`.
+The native and WASM launchers both consume its density and font scale, while
+hardware properties such as resolution and pixel format remain sourced from the
+native BSP or the WASM hardware description. ESP-IDF-only preparation is isolated
+under the submodule board's `native/` directory.

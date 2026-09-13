@@ -66,6 +66,11 @@ configuration to the SuperOS launcher; TAB5 currently supplies its native
 snapshot update instructions. Refreshing that reference requires ESP-IDF, but
 normal WASM fetching and builds do not.
 
+Portable product appearance settings are shared directly from the firmware
+submodule at `brookesia-brookesia/boards/<board>/common`. Both native and WASM
+launchers consume that board profile, while physical hardware properties continue
+to come from the native BSP and generated Board Manager data.
+
 ## WASM source tree and fetching
 
 The WASM build should assemble a correctly shaped source tree without invoking

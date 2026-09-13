@@ -6,6 +6,7 @@
 
 #include "boost/json/array.hpp"
 #include <emscripten.h>
+#include "brookesia/board/config.hpp"
 #include "brookesia/board_wasm/config.hpp"
 #include "brookesia/gui_lvgl/backend.hpp"
 #include "brookesia/gui_lvgl/display_source.hpp"
@@ -58,13 +59,14 @@ void start_superos(void *)
 {
     try {
         auto &source = gui::lvgl::DisplaySource::get_instance();
+        constexpr auto appearance = board::appearance_config();
         system::super::System::Config config;
         config.core_config.gui_backend = std::make_unique<gui::lvgl::Backend>();
         config.core_config.environment = {
             .width_px = static_cast<int32_t>(source.width()),
             .height_px = static_cast<int32_t>(source.height()),
-            .density = 1.0F,
-            .font_scale = 1.0F,
+            .density = appearance.density,
+            .font_scale = appearance.font_scale,
             .language = "en",
             .theme_id = "default",
         };

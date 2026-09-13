@@ -16,6 +16,9 @@ collide. Every board publishes the `brookesia::board_wasm` target and provides t
 stable `brookesia/board_wasm/config.hpp` API. The launcher reads its display
 dimensions from that API; for TAB5 it configures the WASM display, touch surface,
 LVGL output, and SuperOS environment as 720 x 1280 portrait.
+Portable appearance settings such as density and font scale are compiled directly
+from `brookesia-brookesia/boards/<board>/common`, rather than `.deps`, so the
+native firmware and browser build use the same board profile.
 
 The target deliberately disables registered and package app discovery;
 the acceptance target is the same intentionally empty desktop as `eb-superos`.
