@@ -38,6 +38,12 @@ After cloning this project, initialise the firmware submodule with:
 git submodule update --init --recursive
 ```
 
+or on Windows PowerShell:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\fetchSubmodules.ps1
+```
+
 The browser build also needs the Brookesia framework source. Your fork of
 [`espressif/esp-brookesia`](https://github.com/espressif/esp-brookesia) is now
 present at `thirdparty/esp-brookesia`. It is the reference for the upstream source
@@ -248,9 +254,37 @@ installation:
 cmake --version
 ```
 
-Emscripten is installed separately through `emsdk`; `build-bb-layout.ps1` activates the SDK
-before configuring the project. Git is required by the source fetcher, PowerShell
-runs the project scripts, and Python can serve the generated browser files.
+Install Ninja with Windows Package Manager, then open a new terminal and verify
+that it is available on `PATH`:
+
+```powershell
+winget install --exact --id Ninja-build.Ninja
+ninja --version
+```
+
+If `winget` is unavailable, download `ninja-win.zip` from the official
+[Ninja releases page](https://github.com/ninja-build/ninja/releases), extract
+`ninja.exe`, and add its directory to `PATH`.
+
+Install the Emscripten SDK at the location used by the build scripts and activate
+the project's tested version:
+
+```powershell
+git clone https://github.com/emscripten-core/emsdk.git C:\tools\emsdk
+Set-Location C:\tools\emsdk
+.\emsdk install 6.0.9
+.\emsdk activate 6.0.9
+. .\emsdk_env.ps1
+emcc --version
+```
+
+The environment setup applies to the current PowerShell session. The project build
+scripts run `emsdk_env.ps1` themselves, so permanent environment changes are not
+required. If you install the SDK somewhere else, pass that directory with
+`-EmsdkPath`, for example `build-bb-layout.ps1 -EmsdkPath C:\path\to\emsdk`.
+
+Git is required by the source fetcher, PowerShell runs the project scripts, and
+Python can serve the generated browser files.
 
 This project has been built on Windows with:
 
