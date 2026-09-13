@@ -56,6 +56,16 @@ releases. The build does not read these files from the local `thirdparty` checko
 Do not replace the existing `brookesia-brookesia` submodule with that framework
 fork: the two repositories have different roles.
 
+The checked-in [`boards/m5stack_tab5`](boards/m5stack_tab5/README.md) directory
+records the native TAB5 board definition and generated Board Manager output used
+as the parity reference for browser support. Its `wasm/` directory contains the
+ESP-IDF-free browser implementation. The common
+`brookesia/board_wasm/config.hpp` API propagates the selected board's display
+configuration to the SuperOS launcher; TAB5 currently supplies its native
+720 x 1280 RGB565 display. See the board README for component provenance and
+snapshot update instructions. Refreshing that reference requires ESP-IDF, but
+normal WASM fetching and builds do not.
+
 ## WASM source tree and fetching
 
 The WASM build should assemble a correctly shaped source tree without invoking
@@ -249,8 +259,30 @@ SuperOS desktop.
   WASM HAL and SuperOS sources come from the pinned fork commit.
 
 Initialize the submodules and run `fetch.ps1` before building. Use `-Fresh` to
-reset CMake configuration or `-EmsdkPath` to select another SDK. Both builds stage
-the SuperOS resources and preload them at `/brookesia`; writable internal storage
+reset CMake configuration or `-EmsdkPath` to select another SDK. `bb-superos`
+defaults to the `m5stack_tab5` board and places each board configuration in its
+own directory, such as `build/bb-superos/m5stack_tab5`. Select a board with:
+
+```powershell
+.\build-bb-superos.ps1 -Board m5stack_tab5
+```
+
+The equivalent CMake cache setting is `-DBROOKESIA_BOARD=m5stack_tab5`; use a
+matching board-specific build directory when configuring manually. A selectable
+board must provide `boards/<board>/wasm/CMakeLists.txt` and the common
+`brookesia::board_wasm` CMake target. Its public include directory must provide
+`brookesia/board_wasm/config.hpp`, which is the stable API consumed by the
+launcher. For example:
+
+```powershell
+emcmake cmake -S examples/brookesia-brookesia/superos `
+    -B build/bb-superos/m5stack_tab5 -G Ninja `
+    -DBROOKESIA_BOARD=m5stack_tab5 -DCMAKE_BUILD_TYPE=Debug
+cmake --build build/bb-superos/m5stack_tab5
+```
+
+Both builds stage the SuperOS resources and preload them at `/brookesia`;
+writable internal storage
 uses `/brookesia/fs/littlefs`. The `bb-superos` target explicitly retains the
 Device service registration required by System Core.
 

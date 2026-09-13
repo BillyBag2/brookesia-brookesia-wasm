@@ -9,10 +9,19 @@ components come from fixed ESP Component Registry releases.
 ## Current route
 
 `CMakeLists.txt` adds the selected component projects directly and builds
-`bb-superos.html`. It deliberately disables registered and package app discovery;
+`bb-superos.html`. `BROOKESIA_BOARD` selects an ESP-IDF-free implementation under
+`boards/<board>/wasm` and defaults to `m5stack_tab5`. The build wrapper stores the
+result in `build/bb-superos/<board>` so CMake settings for different boards cannot
+collide. Every board publishes the `brookesia::board_wasm` target and provides the
+stable `brookesia/board_wasm/config.hpp` API. The launcher reads its display
+dimensions from that API; for TAB5 it configures the WASM display, touch surface,
+LVGL output, and SuperOS environment as 720 x 1280 portrait.
+
+The target deliberately disables registered and package app discovery;
 the acceptance target is the same intentionally empty desktop as `eb-superos`.
-The SuperOS resource-stage target copies shell assets to `build/bb-superos/brookesia`,
-then the executable preloads them as `/brookesia` in the Emscripten filesystem.
+The SuperOS resource-stage target copies shell assets below the selected board's
+build directory, then the executable preloads them as `/brookesia` in the
+Emscripten filesystem.
 `main.cpp` configures the WASM display, starts and binds the Display service,
 enables its backlight, activates the LVGL source role, then defers SuperOS
 startup until the browser event loop runs.

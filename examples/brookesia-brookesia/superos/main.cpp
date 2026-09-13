@@ -6,6 +6,7 @@
 
 #include "boost/json/array.hpp"
 #include <emscripten.h>
+#include "brookesia/board_wasm/config.hpp"
 #include "brookesia/gui_lvgl/backend.hpp"
 #include "brookesia/gui_lvgl/display_source.hpp"
 #include "brookesia/hal_wasm/display/device.hpp"
@@ -96,8 +97,13 @@ void start_superos(void *)
 
 int main()
 {
+    constexpr auto display_config = brookesia::board_wasm::native_display_config();
     auto &display = hal::DisplayWasmDevice::get_instance();
-    if (!display.configure({.width_px = 800, .height_px = 480, .window_title = "Brookesia SuperOS"})) {
+    if (!display.configure({
+            .width_px = display_config.width,
+            .height_px = display_config.height,
+            .window_title = "Brookesia SuperOS",
+        })) {
         return EXIT_FAILURE;
     }
     if (!service::ServiceManager::get_instance().start()) {

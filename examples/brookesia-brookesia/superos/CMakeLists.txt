@@ -13,6 +13,19 @@ get_filename_component(REPO_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
 set(PUBLISHED_BROOKESIA_ROOT "${REPO_ROOT}/.deps/assembled/esp-brookesia")
 set(LVGL_SOURCE_ROOT "${REPO_ROOT}/.deps/assembled/external/lvgl")
 
+set(BROOKESIA_BOARD "m5stack_tab5" CACHE STRING
+    "Board implementation used by the Brookesia WASM target")
+set_property(CACHE BROOKESIA_BOARD PROPERTY STRINGS m5stack_tab5)
+set(BROOKESIA_BOARD_SOURCE_DIR "${REPO_ROOT}/boards/${BROOKESIA_BOARD}/wasm")
+
+if(NOT EXISTS "${BROOKESIA_BOARD_SOURCE_DIR}/CMakeLists.txt")
+    message(FATAL_ERROR
+        "Unsupported BROOKESIA_BOARD='${BROOKESIA_BOARD}'. Expected a WASM board component at "
+        "${BROOKESIA_BOARD_SOURCE_DIR}/CMakeLists.txt")
+endif()
+
+message(STATUS "Brookesia WASM board: ${BROOKESIA_BOARD}")
+
 foreach(required_path
         "${PUBLISHED_BROOKESIA_ROOT}/system/brookesia_system_super/CMakeLists.txt"
         "${PUBLISHED_BROOKESIA_ROOT}/hal/brookesia_hal_wasm/CMakeLists.txt"
@@ -59,9 +72,13 @@ add_subdirectory(
 add_subdirectory(
     "${PUBLISHED_BROOKESIA_ROOT}/system/brookesia_system_super"
     "${CMAKE_BINARY_DIR}/components/brookesia_system_super")
+add_subdirectory(
+    "${BROOKESIA_BOARD_SOURCE_DIR}"
+    "${CMAKE_BINARY_DIR}/components/board_${BROOKESIA_BOARD}")
 
 add_executable(bb_superos main.cpp)
 target_link_libraries(bb_superos PRIVATE
+    brookesia::board_wasm
     brookesia::system_super
     brookesia::gui_lvgl
     brookesia::hal_wasm

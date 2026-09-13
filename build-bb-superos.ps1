@@ -1,14 +1,20 @@
 [CmdletBinding()]
 param(
     [string]$EmsdkPath = "C:\tools\emsdk",
+    [ValidatePattern("^[A-Za-z0-9][A-Za-z0-9_-]*$")]
+    [string]$Board = "m5stack_tab5",
     [switch]$Fresh
 )
 
 $ErrorActionPreference = "Stop"
 $sourceDirectory = Join-Path $PSScriptRoot "examples\brookesia-brookesia\superos"
-$buildDirectory = Join-Path $PSScriptRoot "build\bb-superos"
+$boardDirectory = Join-Path $PSScriptRoot "boards\$Board\wasm"
+$buildDirectory = Join-Path $PSScriptRoot "build\bb-superos\$Board"
 $emsdkEnvironment = Join-Path $EmsdkPath "emsdk_env.ps1"
 
+if (-not (Test-Path -LiteralPath (Join-Path $boardDirectory "CMakeLists.txt") -PathType Leaf)) {
+    throw "WASM board '$Board' was not found at $boardDirectory."
+}
 if (-not (Test-Path -LiteralPath $emsdkEnvironment -PathType Leaf)) {
     throw "Emscripten environment script not found: $emsdkEnvironment. Pass -EmsdkPath to select your SDK."
 }
@@ -32,7 +38,7 @@ foreach ($source in $requiredSources) {
 . $emsdkEnvironment
 
 $configureArguments = @("cmake", "-S", $sourceDirectory, "-B", $buildDirectory,
-    "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Debug")
+    "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Debug", "-DBROOKESIA_BOARD=$Board")
 if ($Fresh) {
     $configureArguments += "--fresh"
 }
@@ -47,4 +53,4 @@ if ($LASTEXITCODE -ne 0) {
     throw "Brookesia-Brookesia SuperOS build failed with exit code $LASTEXITCODE."
 }
 
-Write-Host "Built $buildDirectory\bb-superos.html"
+Write-Host "Built $buildDirectory\bb-superos.html for board $Board"
