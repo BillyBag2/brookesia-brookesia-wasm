@@ -47,10 +47,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\fetchSubmodules.ps1
 The browser build also needs the Brookesia framework source. Your fork of
 [`espressif/esp-brookesia`](https://github.com/espressif/esp-brookesia) is now
 present at `thirdparty/esp-brookesia`. It is the reference for the upstream source
-layout and host CMake build. Normal WASM builds should use fixed Registry releases
-where they exist, rather than silently taking newer component sources from this
-development checkout. The fork becomes a build input only for unpublished files or
-when it contains a required local fix.
+layout and host CMake build. Normal WASM builds use fixed Registry releases where
+possible. Two components are intentionally fetched directly from the fork at a
+fixed commit: `brookesia_hal_wasm` and `brookesia_system_super`. They contain the
+matching WASM resource-storage changes not yet available together as Registry
+releases. The build does not read these files from the local `thirdparty` checkout.
 
 Do not replace the existing `brookesia-brookesia` submodule with that framework
 fork: the two repositories have different roles.
@@ -169,9 +170,9 @@ only by the browser build. Initially this means `brookesia_runtime_wasm` and its
 `wasm-micro-runtime` dependency, and neither is required for the first statically
 linked layout milestone.
 
-`sources/git` contains the exceptional source that is not published in the
-Registry. Initially that is only `hal/brookesia_hal_wasm`, obtained from
-ESP-Brookesia at a fixed commit.
+`sources/git` contains components fetched from pinned Git commits. The WASM HAL and
+SuperOS component are obtained from the `BillyBag2/esp-brookesia` fork at the same
+fixed commit so their resource-storage APIs stay in sync.
 
 `assembled` reconstructs the paths used by the ESP-Brookesia monorepo. The fetch
 script copies verified sources into it; CMake never needs to know whether a
@@ -185,23 +186,29 @@ ESP-only board, LCD, camera, Wi-Fi coprocessor, and filesystem components. Each
 Registry archive contains its own `CHECKSUMS.json`; the fetcher must validate that
 and the component hash before installing the source.
 
-`brookesia_hal_wasm` is currently the exception. It is in the ESP-Brookesia GitHub
-repository but does not have a published Registry component. Its lock entry should
-name Espressif's repository, a full commit SHA, the source path, and the generated
-destination:
+`brookesia_hal_wasm` and `brookesia_system_super` are currently the exceptions.
+The HAL does not have a published Registry component, and the forked SuperOS
+component contains the matching resource-root change. Their lock entries name the
+fork, the same full commit SHA, their source paths, and their generated destinations:
 
 ```yaml
 - name: brookesia_hal_wasm
   source: git
-  repository: https://github.com/espressif/esp-brookesia.git
-  commit: 6a087b6d76e989802b72fdb835928b273af76af8
+  repository: https://github.com/BillyBag2/esp-brookesia.git
+  commit: 3312eee45c6bab78ae1f4dd5942afda9cb06d989
   path: hal/brookesia_hal_wasm
-  destination: hal/brookesia_hal_wasm
+  destination: esp-brookesia/hal/brookesia_hal_wasm
+- name: brookesia_system_super
+  source: git
+  repository: https://github.com/BillyBag2/esp-brookesia.git
+  commit: 3312eee45c6bab78ae1f4dd5942afda9cb06d989
+  path: system/brookesia_system_super
+  destination: esp-brookesia/system/brookesia_system_super
 ```
 
-That commit is an initial known reference because the current fork points to it;
-the build still needs to establish the earliest commit compatible with the selected
-Registry releases.
+Pinning the commit makes normal fetches reproducible and prevents later fork changes
+from silently entering the build. The remaining Brookesia components continue to
+come from the versions and hashes pinned in the Registry section of the lock file.
 
 Git cannot clone only a repository subdirectory. A sparse checkout still has one
 Git repository, but materialises only selected paths in its working tree. The fetch
@@ -210,9 +217,9 @@ generated tree:
 
 ```sh
 git init .cache/esp-brookesia
-git -C .cache/esp-brookesia remote add origin https://github.com/espressif/esp-brookesia.git
+git -C .cache/esp-brookesia remote add origin https://github.com/BillyBag2/esp-brookesia.git
 git -C .cache/esp-brookesia sparse-checkout init --cone
-git -C .cache/esp-brookesia sparse-checkout set hal/brookesia_hal_wasm
+git -C .cache/esp-brookesia sparse-checkout set <component-path>
 git -C .cache/esp-brookesia fetch --depth 1 origin <commit-sha>
 git -C .cache/esp-brookesia checkout --detach FETCH_HEAD
 ```
@@ -221,7 +228,7 @@ A submodule cannot point directly at `hal/brookesia_hal_wasm`; a submodule recor
 an entire repository and commit, with the repository root mounted at its configured
 path. The existing full `thirdparty/esp-brookesia` submodule is therefore suitable
 as a reference and development checkout. The generated sparse copy is better for
-assembling the released WASM dependency tree.
+assembling the locked WASM dependency tree.
 
 The layout example's `examples/brookesia-brookesia/layout/CMakeLists.txt` belongs
 to this project. It should add the generated
@@ -229,19 +236,26 @@ components in dependency order and use the upstream top-level CMake file as a
 reference. This avoids coupling released components to whatever component versions
 happen to be present on the fork's `master` branch.
 
-## SuperOS component build
+## SuperOS component builds
 
-Run `./build-eb-superos.ps1` to configure
-`examples/esp-brookesia/superos/CMakeLists.txt` and build into `build/eb-superos`.
-Use `-Fresh` to reset CMake configuration or `-EmsdkPath` to select another SDK.
-The project follows `ONE_IDEA.md` and adds `thirdparty/esp-brookesia/CMakeLists.txt`
-with the WASM HAL, SuperOS, JavaScript runtime, services, and built-in apps enabled.
-Initialize that submodule and run `fetch.ps1` for LVGL first. Upstream fetches
-QuickJS-NG during configuration when no local source is configured.
+There are two minimal SuperOS targets. Both deliberately disable registered and
+package app discovery; their acceptance target is an empty but fully initialized
+SuperOS desktop.
 
-This builds component libraries and stages upstream resources. A browser
-executable still requires a host `main.cpp` and Emscripten resource packaging;
-`host.ps1` continues to serve the separate layout example.
+- `build-eb-superos.ps1` builds `examples/esp-brookesia/superos` from the complete
+  `thirdparty/esp-brookesia` checkout.
+- `build-bb-superos.ps1` builds `examples/brookesia-brookesia/superos` from the
+  locked `.deps/assembled` tree. Most components are Registry releases, while its
+  WASM HAL and SuperOS sources come from the pinned fork commit.
+
+Initialize the submodules and run `fetch.ps1` before building. Use `-Fresh` to
+reset CMake configuration or `-EmsdkPath` to select another SDK. Both builds stage
+the SuperOS resources and preload them at `/brookesia`; writable internal storage
+uses `/brookesia/fs/littlefs`. The `bb-superos` target explicitly retains the
+Device service registration required by System Core.
+
+`host.ps1` discovers and serves all complete browser builds under `build`, including
+both SuperOS targets and the layout example.
 
 ## Build tools
 

@@ -24,9 +24,8 @@ display, activates the LVGL source, enables the simulated backlight, and starts
 
 ## Current issues and next steps
 
-- The executable and its 2.1 MB resource archive build successfully. The
-  browser now reaches the WASM display and shows its light-grey LVGL
-  background. The SuperOS shell has not yet drawn visible content.
+- The executable and its resource archive build successfully and reaches the
+  intentionally empty SuperOS desktop.
 - The example maps writable internal storage to StorageWasmDevice's LittleFS
   path, `/brookesia/fs/littlefs`. The preloaded `/brookesia` archive is reserved
   for shell resources. SuperOS's `resource_root_path` override directs packaged

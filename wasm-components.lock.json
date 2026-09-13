@@ -101,13 +101,6 @@
       "destination": "esp-brookesia/system/brookesia_system_core"
     },
     {
-      "name": "espressif/brookesia_system_super",
-      "version": "0.8.3",
-      "componentHash": "4d9cd6f63c633ac7580525c3ee1fc5e46543be5d35967888780fb67e79928989",
-      "group": "managed_components",
-      "destination": "esp-brookesia/system/brookesia_system_super"
-    },
-    {
       "name": "lvgl/lvgl",
       "version": "9.4.0",
       "componentHash": "17e68bfd21f0edf4c3ee838e2273da840bf3930e5dbc3bfa6c1190c3aed41f9f",
@@ -132,10 +125,17 @@
   "git": [
     {
       "name": "brookesia_hal_wasm",
-      "repository": "https://github.com/espressif/esp-brookesia.git",
-      "commit": "6a087b6d76e989802b72fdb835928b273af76af8",
+      "repository": "https://github.com/BillyBag2/esp-brookesia.git",
+      "commit": "3312eee45c6bab78ae1f4dd5942afda9cb06d989",
       "path": "hal/brookesia_hal_wasm",
       "destination": "esp-brookesia/hal/brookesia_hal_wasm"
+    },
+    {
+      "name": "brookesia_system_super",
+      "repository": "https://github.com/BillyBag2/esp-brookesia.git",
+      "commit": "3312eee45c6bab78ae1f4dd5942afda9cb06d989",
+      "path": "system/brookesia_system_super",
+      "destination": "esp-brookesia/system/brookesia_system_super"
     }
   ]
 }

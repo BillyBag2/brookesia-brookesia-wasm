@@ -202,7 +202,8 @@ function Get-GitSource {
     param([Parameter(Mandatory = $true)]$Entry)
 
     $shortCommit = ([string]$Entry.commit).Substring(0, 12)
-    $checkoutDirectory = Join-Path $dependencyRoot "sources/git/esp-brookesia-$shortCommit"
+    $sourceName = ([string]$Entry.name) -replace '[^A-Za-z0-9._-]', '-'
+    $checkoutDirectory = Join-Path $dependencyRoot "sources/git/$sourceName-$shortCommit"
     $componentDirectory = Join-Path $checkoutDirectory $Entry.path
 
     if (Test-Path -LiteralPath $checkoutDirectory) {

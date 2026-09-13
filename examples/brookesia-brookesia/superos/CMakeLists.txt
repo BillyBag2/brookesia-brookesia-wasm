@@ -51,6 +51,9 @@ add_subdirectory(
     "${PUBLISHED_BROOKESIA_ROOT}/runtime/brookesia_runtime_manager"
     "${CMAKE_BINARY_DIR}/components/brookesia_runtime_manager")
 add_subdirectory(
+    "${PUBLISHED_BROOKESIA_ROOT}/service/system/brookesia_service_device"
+    "${CMAKE_BINARY_DIR}/components/brookesia_service_device")
+add_subdirectory(
     "${PUBLISHED_BROOKESIA_ROOT}/system/brookesia_system_core"
     "${CMAKE_BINARY_DIR}/components/brookesia_system_core")
 add_subdirectory(
@@ -61,7 +64,8 @@ add_executable(bb_superos main.cpp)
 target_link_libraries(bb_superos PRIVATE
     brookesia::system_super
     brookesia::gui_lvgl
-    brookesia::hal_wasm)
+    brookesia::hal_wasm
+    "$<LINK_LIBRARY:WHOLE_ARCHIVE,brookesia::service_device>")
 target_link_options(bb_superos PRIVATE
     "SHELL:-sUSE_SDL=2"
     "SHELL:-sUSE_ZLIB=1"

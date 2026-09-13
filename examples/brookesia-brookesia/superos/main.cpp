@@ -70,6 +70,14 @@ void start_superos(void *)
         config.core_config.start_service_manager = false;
         config.core_config.install_registered_apps = false;
         config.core_config.install_package_apps = false;
+        config.resource_root_path = "/brookesia";
+        config.core_config.storage.internal_override = system::core::StorageVolume{
+            .id = "wasm_internal",
+            .partition = system::core::StoragePartition::Internal,
+            .mount_point = "/littlefs",
+            .root_path = "/brookesia/fs/littlefs",
+            .available = true,
+        };
 
         system_instance = std::make_unique<system::super::System>();
         if (auto result = system_instance->init(std::move(config)); !result) {
