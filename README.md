@@ -292,7 +292,9 @@ uses `/brookesia/fs/littlefs`. The `bb-superos` target explicitly retains the
 Device service registration required by System Core.
 
 `host.ps1` discovers and serves all complete browser builds under `build`, including
-both SuperOS targets and the layout example.
+both SuperOS targets and the layout example. For SuperOS it links to the clean
+`*-host.html` launcher while preserving Emscripten's generated `.html` page beside
+it for diagnostics.
 
 ## Build tools
 
@@ -401,7 +403,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\host.ps1
 
 The script finds every complete HTML, JavaScript, and WebAssembly triplet under
 `build`, copies them to the ignored `output` directory, creates `output/index.html`,
-and opens that page in the default browser. Matching `.data` archives are copied too.
+and opens that page in the default browser. Matching `.data` archives and optional
+`*-host.html` launchers are copied too; the index prefers the cleaner host page.
 It serves `output` until you press Ctrl+C. Most Windows terminals make the printed URL
 clickable. Use `host.ps1 -Port 8080` to select another port or
 `host.ps1 -NoBrowser` to start the server without opening a browser. Do not open

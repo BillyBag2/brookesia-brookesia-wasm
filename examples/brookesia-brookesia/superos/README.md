@@ -9,7 +9,10 @@ components come from fixed ESP Component Registry releases.
 ## Current route
 
 `CMakeLists.txt` adds the selected component projects directly and builds
-`bb-superos.html`. `BROOKESIA_BOARD` selects an ESP-IDF-free implementation under
+`bb-superos.html` plus the clean `bb-superos-host.html` launcher. The former is
+Emscripten's generated diagnostic page; the latter is the normal host page and
+contains only the application canvas and loading/error status. `BROOKESIA_BOARD`
+selects an ESP-IDF-free implementation under
 `boards/<board>/wasm` and defaults to `m5stack_tab5`. The build wrapper stores the
 result in `build/bb-superos/<board>` so CMake settings for different boards cannot
 collide. Every board publishes the `brookesia::board_wasm` target and provides the

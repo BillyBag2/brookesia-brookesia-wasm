@@ -91,3 +91,12 @@ target_link_options(bb_superos PRIVATE
     # SystemSuper stages this directory before the executable links.
     "SHELL:--preload-file ${CMAKE_BINARY_DIR}/brookesia@/brookesia")
 set_target_properties(bb_superos PROPERTIES OUTPUT_NAME "bb-superos" SUFFIX ".html")
+
+# Keep Emscripten's generated diagnostic shell and provide a cleaner static
+# launcher beside it for normal use.
+set(BROOKESIA_HOST_TITLE "Brookesia-Brookesia SuperOS")
+set(BROOKESIA_HOST_SCRIPT "bb-superos.js")
+configure_file(
+    "${REPO_ROOT}/cmake/superos-host.html.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/bb-superos-host.html"
+    @ONLY)

@@ -2,11 +2,15 @@
 
 This example builds `eb-superos.html`, JavaScript, WebAssembly, and a preloaded
 `/brookesia` resource tree from the `thirdparty/esp-brookesia` checkout.
+It also configures `eb-superos-host.html`, a clean launcher without Emscripten's
+logo, controls, or visible console. The generated `eb-superos.html` remains
+available as a diagnostic page.
 
 The build output is:
 
 ```text
 build/eb-superos/eb-superos.html
+build/eb-superos/eb-superos-host.html
 build/eb-superos/eb-superos.js
 build/eb-superos/eb-superos.wasm
 build/eb-superos/eb-superos.data

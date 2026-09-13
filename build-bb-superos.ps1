@@ -53,4 +53,4 @@ if ($LASTEXITCODE -ne 0) {
     throw "Brookesia-Brookesia SuperOS build failed with exit code $LASTEXITCODE."
 }
 
-Write-Host "Built $buildDirectory\bb-superos.html for board $Board"
+Write-Host "Built $buildDirectory\bb-superos-host.html for board $Board (generated diagnostic page: bb-superos.html)"

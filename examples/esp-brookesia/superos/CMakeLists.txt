@@ -50,6 +50,15 @@ target_link_options(eb_superos PRIVATE
     "SHELL:--preload-file ${CMAKE_BINARY_DIR}/brookesia@/brookesia")
 set_target_properties(eb_superos PROPERTIES OUTPUT_NAME "eb-superos" SUFFIX ".html")
 
+# Keep Emscripten's generated diagnostic shell and provide a cleaner static
+# launcher beside it for normal use.
+set(BROOKESIA_HOST_TITLE "ESP-Brookesia SuperOS")
+set(BROOKESIA_HOST_SCRIPT "eb-superos.js")
+configure_file(
+    "${REPO_ROOT}/cmake/superos-host.html.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/eb-superos-host.html"
+    @ONLY)
+
 get_property(superos_resource_targets GLOBAL PROPERTY BROOKESIA_SYSTEM_SUPER_STAGE_TARGETS)
 if(superos_resource_targets)
     add_dependencies(eb_superos ${superos_resource_targets})

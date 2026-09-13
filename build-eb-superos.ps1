@@ -29,4 +29,4 @@ if ($LASTEXITCODE -ne 0) {
 if ($LASTEXITCODE -ne 0) {
     throw "SuperOS build failed with exit code $LASTEXITCODE."
 }
-Write-Host "Built $buildDirectory\eb-superos.html"
+Write-Host "Built $buildDirectory\eb-superos-host.html (generated diagnostic page: eb-superos.html)"

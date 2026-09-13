@@ -33,6 +33,7 @@ $browserBuilds = @(
                     JavaScript = $javascript
                     Wasm = $wasm
                     Data = Join-Path $directory "$baseName.data"
+                    Host = Join-Path $directory "$baseName-host.html"
                 }
             }
         }
@@ -72,6 +73,9 @@ foreach ($build in $browserBuilds) {
     if (Test-Path -LiteralPath $build.Data -PathType Leaf) {
         Copy-Item -LiteralPath $build.Data -Destination $stageDirectory -Force
     }
+    if (Test-Path -LiteralPath $build.Host -PathType Leaf) {
+        Copy-Item -LiteralPath $build.Host -Destination $stageDirectory -Force
+    }
 }
 
 $links = $browserBuilds |
@@ -83,7 +87,12 @@ $links = $browserBuilds |
         # $buildDirectory, so trim that known prefix instead.
         $buildPath = $_.BuildDirectory.Substring($buildDirectory.Length).TrimStart('\', '/')
         $buildPath = [System.Net.WebUtility]::HtmlEncode($buildPath.Replace('\', '/'))
-        $htmlName = [System.Net.WebUtility]::HtmlEncode("$($_.Name).html")
+        $hostName = if (Test-Path -LiteralPath $_.Host -PathType Leaf) {
+            "$($_.Name)-host.html"
+        } else {
+            "$($_.Name).html"
+        }
+        $htmlName = [System.Net.WebUtility]::HtmlEncode($hostName)
         "    <li><a href=`"$name/$htmlName`">$name</a> <small>($buildPath)</small></li>"
     }
 $index = @"
