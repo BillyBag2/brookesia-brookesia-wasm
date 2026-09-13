@@ -71,3 +71,8 @@ The native and WASM launchers both consume its density and font scale, while
 hardware properties such as resolution and pixel format remain sourced from the
 native BSP or the WASM hardware description. ESP-IDF-only preparation is isolated
 under the submodule board's `native/` directory.
+
+`wasm/apps.cmake` is the manually maintained allowlist of registered apps known to
+work in this board's browser build. App implementations are resolved from the
+version-locked `.deps/assembled` tree; selecting an app does not compile the
+submodule's generated `managed_components` directory directly.

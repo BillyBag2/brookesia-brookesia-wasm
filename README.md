@@ -71,6 +71,12 @@ submodule at `brookesia-brookesia/boards/<board>/common`. Both native and WASM
 launchers consume that board profile, while physical hardware properties continue
 to come from the native BSP and generated Board Manager data.
 
+Each board may select a tested subset of registered browser apps in
+`boards/<board>/wasm/apps.cmake`. Those names resolve only through the pinned
+`.deps/assembled` tree. Add a matching entry to `wasm-components.lock.json` before
+selecting a new app; configuration reports missing fetched sources and directs you
+to run `fetch.ps1`.
+
 ## WASM source tree and fetching
 
 The WASM build should assemble a correctly shaped source tree without invoking

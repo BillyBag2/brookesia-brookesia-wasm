@@ -66,9 +66,50 @@ add_subdirectory(
 add_subdirectory(
     "${PUBLISHED_BROOKESIA_ROOT}/service/system/brookesia_service_device"
     "${CMAKE_BINARY_DIR}/components/brookesia_service_device")
+
+# The WASM storage HAL exposes this build directory as /brookesia/fs/littlefs.
+# Stage registered app packages inside that volume so SystemCore can install
+# them from the same path it uses on the native target.
+set(
+    BROOKESIA_SYSTEM_CORE_PC_STAGE_APP_ROOT
+    "${CMAKE_BINARY_DIR}/brookesia/fs/littlefs/apps"
+    CACHE PATH
+    "WASM staging root for registered apps"
+    FORCE)
+# Remove packages left by builds made before apps were staged inside LittleFS.
+file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/brookesia/apps")
 add_subdirectory(
     "${PUBLISHED_BROOKESIA_ROOT}/system/brookesia_system_core"
     "${CMAKE_BINARY_DIR}/components/brookesia_system_core")
+
+set(BROOKESIA_WASM_APP_MANIFEST "${BROOKESIA_BOARD_SOURCE_DIR}/apps.cmake")
+if(NOT EXISTS "${BROOKESIA_WASM_APP_MANIFEST}")
+    message(FATAL_ERROR
+        "Board '${BROOKESIA_BOARD}' has no WASM app manifest: ${BROOKESIA_WASM_APP_MANIFEST}")
+endif()
+include("${BROOKESIA_WASM_APP_MANIFEST}")
+
+set(BROOKESIA_WASM_APP_TARGETS "")
+foreach(app_name IN LISTS BROOKESIA_WASM_APPS)
+    if(NOT app_name MATCHES "^brookesia_app_[a-z0-9_]+$")
+        message(FATAL_ERROR "Invalid Brookesia WASM app name: '${app_name}'")
+    endif()
+
+    set(app_source_dir "${PUBLISHED_BROOKESIA_ROOT}/app/${app_name}")
+    if(NOT EXISTS "${app_source_dir}/CMakeLists.txt")
+        message(FATAL_ERROR
+            "WASM app '${app_name}' is selected for '${BROOKESIA_BOARD}' but is missing from "
+            "${app_source_dir}. Add its pinned entry to wasm-components.lock.json and run fetch.ps1.")
+    endif()
+
+    add_subdirectory(
+        "${app_source_dir}"
+        "${CMAKE_BINARY_DIR}/components/${app_name}")
+    string(REGEX REPLACE "^brookesia_" "" app_target_name "${app_name}")
+    list(APPEND BROOKESIA_WASM_APP_TARGETS "brookesia::${app_target_name}")
+    message(STATUS "Brookesia WASM app: ${app_name}")
+endforeach()
+
 add_subdirectory(
     "${PUBLISHED_BROOKESIA_ROOT}/system/brookesia_system_super"
     "${CMAKE_BINARY_DIR}/components/brookesia_system_super")
@@ -82,15 +123,32 @@ target_link_libraries(bb_superos PRIVATE
     brookesia::system_super
     brookesia::gui_lvgl
     brookesia::hal_wasm
+    ${BROOKESIA_WASM_APP_TARGETS}
     "$<LINK_LIBRARY:WHOLE_ARCHIVE,brookesia::service_device>")
+if(BROOKESIA_WASM_APP_TARGETS)
+    target_compile_definitions(bb_superos PRIVATE BROOKESIA_WASM_HAS_REGISTERED_APPS=1)
+else()
+    target_compile_definitions(bb_superos PRIVATE BROOKESIA_WASM_HAS_REGISTERED_APPS=0)
+endif()
 target_link_options(bb_superos PRIVATE
     "SHELL:-sUSE_SDL=2"
     "SHELL:-sUSE_ZLIB=1"
+    "SHELL:-sSTACK_SIZE=262144"
     "SHELL:-sALLOW_MEMORY_GROWTH=1"
     "SHELL:-sASYNCIFY=1"
     # SystemSuper stages this directory before the executable links.
     "SHELL:--preload-file ${CMAKE_BINARY_DIR}/brookesia@/brookesia")
+file(GLOB_RECURSE brookesia_preload_files CONFIGURE_DEPENDS
+    LIST_DIRECTORIES FALSE
+    "${CMAKE_BINARY_DIR}/brookesia/*")
+set_property(TARGET bb_superos APPEND PROPERTY LINK_DEPENDS ${brookesia_preload_files})
 set_target_properties(bb_superos PROPERTIES OUTPUT_NAME "bb-superos" SUFFIX ".html")
+
+get_property(superos_resource_targets GLOBAL PROPERTY BROOKESIA_SYSTEM_SUPER_STAGE_TARGETS)
+get_property(runtime_app_targets GLOBAL PROPERTY BROOKESIA_RUNTIME_APP_STAGE_TARGETS)
+if(superos_resource_targets OR runtime_app_targets)
+    add_dependencies(bb_superos ${superos_resource_targets} ${runtime_app_targets})
+endif()
 
 # Keep Emscripten's generated diagnostic shell and provide a cleaner static
 # launcher beside it for normal use.

@@ -8,6 +8,11 @@
 #define LV_LOG_LEVEL LV_LOG_LEVEL_WARN
 #define LV_USE_OS LV_OS_NONE
 
+/* Decode in-memory JPEG resources used by Brookesia applications. */
+#define LV_USE_TJPGD 1
+#define LV_USE_FS_MEMFS 1
+#define LV_FS_MEMFS_LETTER 'M'
+
 #define LV_FONT_MONTSERRAT_12 1
 #define LV_FONT_MONTSERRAT_14 1
 #define LV_FONT_MONTSERRAT_16 1

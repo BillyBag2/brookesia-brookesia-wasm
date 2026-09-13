@@ -23,8 +23,16 @@ Portable appearance settings such as density and font scale are compiled directl
 from `brookesia-brookesia/boards/<board>/common`, rather than `.deps`, so the
 native firmware and browser build use the same board profile.
 
-The target deliberately disables registered and package app discovery;
-the acceptance target is the same intentionally empty desktop as `eb-superos`.
+The selected board's `wasm/apps.cmake` manually allowlists registered applications.
+TAB5 currently enables `brookesia_app_settings`, compiled from its pinned source in
+`.deps/assembled`. Its package resources are staged into
+`brookesia/fs/littlefs/apps`, matching the WASM internal-storage mount used by
+SuperOS. Package-app discovery remains disabled.
+
+The executable uses a 256 KiB Emscripten stack because parsing the Settings GUI
+documents exceeds Emscripten's 64 KiB default in debug builds.
+LVGL's built-in TJPGD decoder and memory-filesystem adapter are enabled for
+JPEG resources used by Settings.
 The SuperOS resource-stage target copies shell assets below the selected board's
 build directory, then the executable preloads them as `/brookesia` in the
 Emscripten filesystem.
@@ -40,6 +48,10 @@ System Core also requires the Device service during initialization. The executab
 links `brookesia::service_device` with `WHOLE_ARCHIVE` so the static service
 registration object is retained. Without it, LVGL displays its pale background but
 SuperOS stops before mounting the desktop.
+
+Every allowlisted app must also have a pinned entry in `wasm-components.lock.json`.
+Configuration fails with a `fetch.ps1` instruction when its assembled source is
+missing.
 
 The target configures, compiles, stages its shell resources, and links successfully
 with Emscripten.

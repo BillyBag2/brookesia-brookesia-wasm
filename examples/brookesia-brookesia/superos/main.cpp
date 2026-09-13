@@ -71,7 +71,7 @@ void start_superos(void *)
             .theme_id = "default",
         };
         config.core_config.start_service_manager = false;
-        config.core_config.install_registered_apps = false;
+        config.core_config.install_registered_apps = BROOKESIA_WASM_HAS_REGISTERED_APPS != 0;
         config.core_config.install_package_apps = false;
         config.resource_root_path = "/brookesia";
         config.core_config.storage.internal_override = system::core::StorageVolume{
