@@ -39,10 +39,8 @@ display, activates the LVGL source, enables the simulated backlight, and starts
   because SystemCore uses the browser-backed single-thread task scheduler.
 - Storage cannot be omitted as a workaround: Wi-Fi requires it and Display also
   links it as a transitive dependency. The WASM scheduler already executes
-  immediate service calls inline, so the remaining initialization block needs
-  evidence before service behavior changes. Temporary `__EMSCRIPTEN__` probes
-  in System Core identify the next initialization step reached; remove them
-  before submitting an upstream PR.
+  immediate service calls inline, so no service-scheduler change was needed for
+  this startup path.
 - SuperOS previously derived both packaged-resource paths and writable app-data
   paths from internal storage. `resource_root_path` separates those concerns
   without changing the ESP default. This API is intended for upstream review.

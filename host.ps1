@@ -27,6 +27,8 @@ $browserBuilds = @(
                 (Test-Path -LiteralPath $wasm -PathType Leaf)) {
                 [pscustomobject]@{
                     Name = $baseName
+                    StagedName = $baseName
+                    BuildDirectory = $directory
                     Html = $_.FullName
                     JavaScript = $javascript
                     Wasm = $wasm
@@ -40,24 +42,49 @@ if ($browserBuilds.Count -eq 0) {
     throw "No HTML, JavaScript, and WebAssembly build triplets were found under $buildDirectory."
 }
 
+# Keep a flat output directory while retaining builds that happen to use the
+# same executable name. The conventional build directory (for example
+# build/bb-superos) keeps that name; other copies use their directory name.
 $duplicateNames = $browserBuilds | Group-Object Name | Where-Object Count -gt 1
-if ($duplicateNames) {
-    $names = ($duplicateNames | ForEach-Object Name) -join ", "
-    throw "Build output names must be unique before staging: $names"
+foreach ($duplicate in $duplicateNames) {
+    foreach ($build in $duplicate.Group) {
+        $buildDirectoryName = Split-Path -Leaf $build.BuildDirectory
+        if ($buildDirectoryName -ne $build.Name) {
+            $build.StagedName = $buildDirectoryName
+        }
+    }
+}
+
+$duplicateStagedNames = $browserBuilds | Group-Object StagedName | Where-Object Count -gt 1
+if ($duplicateStagedNames) {
+    $names = ($duplicateStagedNames | ForEach-Object Name) -join ", "
+    throw "Build directories must have unique names before staging: $names"
 }
 
 foreach ($build in $browserBuilds) {
-    Copy-Item -LiteralPath $build.Html, $build.JavaScript, $build.Wasm -Destination $outputDirectory -Force
+    # Keep each build's original filenames together. Emscripten's generated
+    # JavaScript may refer to its matching .wasm or .data filename directly.
+    $stageDirectory = Join-Path $outputDirectory $build.StagedName
+    if (-not (Test-Path -LiteralPath $stageDirectory -PathType Container)) {
+        New-Item -ItemType Directory -Path $stageDirectory -Force | Out-Null
+    }
+    Copy-Item -LiteralPath $build.Html, $build.JavaScript, $build.Wasm -Destination $stageDirectory -Force
     if (Test-Path -LiteralPath $build.Data -PathType Leaf) {
-        Copy-Item -LiteralPath $build.Data -Destination $outputDirectory -Force
+        Copy-Item -LiteralPath $build.Data -Destination $stageDirectory -Force
     }
 }
 
 $links = $browserBuilds |
     Sort-Object Name |
     ForEach-Object {
-        $name = [System.Net.WebUtility]::HtmlEncode($_.Name)
-        "    <li><a href=`"$name.html`">$name</a></li>"
+        $name = [System.Net.WebUtility]::HtmlEncode($_.StagedName)
+        # Windows PowerShell 5.1 runs on .NET Framework, which does not expose
+        # System.IO.Path.GetRelativePath(). Every discovered build is below
+        # $buildDirectory, so trim that known prefix instead.
+        $buildPath = $_.BuildDirectory.Substring($buildDirectory.Length).TrimStart('\', '/')
+        $buildPath = [System.Net.WebUtility]::HtmlEncode($buildPath.Replace('\', '/'))
+        $htmlName = [System.Net.WebUtility]::HtmlEncode("$($_.Name).html")
+        "    <li><a href=`"$name/$htmlName`">$name</a> <small>($buildPath)</small></li>"
     }
 $index = @"
 <!doctype html>
@@ -72,6 +99,7 @@ $($links -join [Environment]::NewLine)
 </html>
 "@
 [System.IO.File]::WriteAllText((Join-Path $outputDirectory "index.html"), $index, [System.Text.UTF8Encoding]::new($false))
+Write-Host "Staged browser builds: $(($browserBuilds | Sort-Object StagedName | ForEach-Object StagedName) -join ', ')"
 
 $python = Get-Command python -ErrorAction SilentlyContinue
 $pythonArguments = @("-m", "http.server", $Port, "--bind", "127.0.0.1")
