@@ -59,7 +59,7 @@ void start_superos(void *)
 {
     try {
         auto &source = gui::lvgl::DisplaySource::get_instance();
-        constexpr auto appearance = board::appearance_config();
+        constexpr auto appearance = brookesia::board_wasm::appearance_config();
         system::super::System::Config config;
         config.core_config.gui_backend = std::make_unique<gui::lvgl::Backend>();
         config.core_config.environment = {

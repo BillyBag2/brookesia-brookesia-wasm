@@ -33,6 +33,9 @@ The executable uses a 256 KiB Emscripten stack because parsing the Settings GUI
 documents exceeds Emscripten's 64 KiB default in debug builds.
 LVGL's built-in TJPGD decoder and memory-filesystem adapter are enabled for
 JPEG resources used by Settings.
+The WASM build also enables FreeType so packaged TTF fonts use the same font
+metrics as the native build. TAB5 currently overrides the shared board density
+to `1.0` in its WASM profile for display-scale testing.
 The SuperOS resource-stage target copies shell assets below the selected board's
 build directory, then the executable preloads them as `/brookesia` in the
 Emscripten filesystem.

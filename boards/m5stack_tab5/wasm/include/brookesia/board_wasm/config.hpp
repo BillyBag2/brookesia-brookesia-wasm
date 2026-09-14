@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "brookesia/board/config.hpp"
+
 namespace brookesia::board_wasm {
 
 enum class PixelFormat {
@@ -21,6 +23,13 @@ struct DisplayConfig {
         .height = 1280,
         .pixel_format = PixelFormat::rgb565,
     };
+}
+
+[[nodiscard]] constexpr esp_brookesia::board::AppearanceConfig appearance_config() noexcept
+{
+    auto config = esp_brookesia::board::appearance_config();
+    config.density = 1.0F;
+    return config;
 }
 
 } // namespace brookesia::board_wasm

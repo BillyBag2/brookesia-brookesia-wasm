@@ -32,6 +32,8 @@ set(CONFIG_LV_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(CONFIG_LV_USE_THORVG_INTERNAL OFF CACHE BOOL "" FORCE)
 add_subdirectory("${LVGL_SOURCE_ROOT}" "${CMAKE_BINARY_DIR}/components/lvgl")
 target_include_directories(lvgl PUBLIC "${REPO_ROOT}/.deps/assembled/external")
+include("${REPO_ROOT}/cmake/wasm_lvgl.cmake")
+brookesia_configure_wasm_lvgl(lvgl)
 
 # These component CMake files pull their own Brookesia dependencies from the
 # assembled source tree. gui_lvgl also selects hal_wasm when EMSCRIPTEN is set.

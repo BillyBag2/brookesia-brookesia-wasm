@@ -13,6 +13,10 @@
 #define LV_USE_FS_MEMFS 1
 #define LV_FS_MEMFS_LETTER 'M'
 
+/* Load the same packaged TTF fonts as the native build. */
+#define LV_USE_FREETYPE 1
+#define LV_FREETYPE_USE_LVGL_PORT 0
+
 #define LV_FONT_MONTSERRAT_12 1
 #define LV_FONT_MONTSERRAT_14 1
 #define LV_FONT_MONTSERRAT_16 1

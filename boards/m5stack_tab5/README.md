@@ -67,10 +67,12 @@ SuperOS environment then obtain the same dimensions from the active display.
 
 Appearance settings shared with the native firmware come directly from
 `brookesia-brookesia/boards/m5stack_tab5/common/include/brookesia/board/config.hpp`.
-The native and WASM launchers both consume its density and font scale, while
-hardware properties such as resolution and pixel format remain sourced from the
-native BSP or the WASM hardware description. ESP-IDF-only preparation is isolated
-under the submodule board's `native/` directory.
+The WASM profile inherits those settings but currently overrides density to
+`1.0`; density `1.5` exposes incorrect JPEG clipping in LVGL's TJPGD rendering
+path. The shared font scale remains unchanged. Hardware properties such as
+resolution and pixel format remain sourced from the native BSP or the WASM
+hardware description. ESP-IDF-only preparation is isolated under the submodule
+board's `native/` directory.
 
 `wasm/apps.cmake` is the manually maintained allowlist of registered apps known to
 work in this board's browser build. App implementations are resolved from the
