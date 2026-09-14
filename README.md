@@ -84,6 +84,10 @@ ESP-IDF or using the firmware project's generated `managed_components` directory
 A committed `wasm-components.lock.json` lists every source, exact version or Git
 commit, integrity hash, and destination. A standalone fetch script will create the
 tree under `.deps/`; that directory is generated and should not be committed.
+The lock file also lists repository-owned patches applied to assembled components.
+Patch application is idempotent and fails if a pinned dependency no longer matches,
+so compatibility changes remain reproducible instead of becoming untracked edits
+inside `.deps`.
 
 Run the fetcher from the repository root:
 

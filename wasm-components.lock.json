@@ -1,6 +1,13 @@
 {
   "schemaVersion": 1,
   "registryStorageUrl": "https://components-file.espressif.com/",
+  "patches": [
+    {
+      "name": "lvgl-validate-image-transform-stride",
+      "destination": "external/lvgl",
+      "file": "patches/lvgl/0001-skip-empty-image-transform.patch"
+    }
+  ],
   "registry": [
     {
       "name": "espressif/brookesia_app_settings",

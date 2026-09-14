@@ -198,6 +198,66 @@ function Invoke-Git {
     }
 }
 
+function Test-GitApply {
+    param(
+        [Parameter(Mandatory = $true)][string]$Destination,
+        [Parameter(Mandatory = $true)][string]$PatchFile,
+        [switch]$Reverse
+    )
+
+    $arguments = @(
+        "-C", $repositoryRoot,
+        "apply", "--check", "--ignore-space-change", "-p1",
+        "--directory=.deps/assembled/$($Destination.Replace('\', '/'))"
+    )
+    if ($Reverse) {
+        $arguments += "--reverse"
+    }
+    $arguments += $PatchFile
+
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "Continue"
+        & git @arguments *> $null
+        return $LASTEXITCODE -eq 0
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+}
+
+function Install-AssembledPatch {
+    param([Parameter(Mandatory = $true)]$Entry)
+
+    $destination = [System.IO.Path]::GetFullPath((Join-Path $assembledRoot $Entry.destination))
+    Assert-GeneratedPath -Path $destination
+    if (-not (Test-Path -LiteralPath $destination -PathType Container)) {
+        throw "Patch destination was not assembled: $($Entry.destination)"
+    }
+
+    $patchFile = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $Entry.file))
+    $repositoryPrefix = $repositoryRoot.TrimEnd([System.IO.Path]::DirectorySeparatorChar) +
+        [System.IO.Path]::DirectorySeparatorChar
+    if (-not $patchFile.StartsWith($repositoryPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Patch file is outside the repository: $patchFile"
+    }
+    if (-not (Test-Path -LiteralPath $patchFile -PathType Leaf)) {
+        throw "Patch file was not found: $patchFile"
+    }
+
+    if (Test-GitApply -Destination $Entry.destination -PatchFile $patchFile -Reverse) {
+        Write-Host "Patch already applied: $($Entry.name)"
+        return
+    }
+    if (-not (Test-GitApply -Destination $Entry.destination -PatchFile $patchFile)) {
+        throw "Patch does not apply cleanly: $($Entry.name)"
+    }
+
+    Invoke-Git -C $repositoryRoot apply --ignore-space-change -p1 `
+        "--directory=.deps/assembled/$($Entry.destination.Replace('\', '/'))" $patchFile
+    Write-Host "Applied patch: $($Entry.name)"
+}
+
 function Get-GitSource {
     param([Parameter(Mandatory = $true)]$Entry)
 
@@ -261,6 +321,10 @@ foreach ($entry in $lock.registry) {
 foreach ($entry in $lock.git) {
     $source = Get-GitSource -Entry $entry
     Install-AssembledDirectory -Source $source -RelativeDestination $entry.destination
+}
+
+foreach ($entry in @($lock.patches)) {
+    Install-AssembledPatch -Entry $entry
 }
 
 Write-Host "WASM source tree is ready at $assembledRoot"
