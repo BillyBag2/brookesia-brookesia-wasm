@@ -25,11 +25,4 @@ struct DisplayConfig {
     };
 }
 
-[[nodiscard]] constexpr esp_brookesia::board::AppearanceConfig appearance_config() noexcept
-{
-    auto config = esp_brookesia::board::appearance_config();
-    config.density = 1.0F;
-    return config;
-}
-
 } // namespace brookesia::board_wasm
