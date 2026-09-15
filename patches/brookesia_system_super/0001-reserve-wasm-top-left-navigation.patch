@@ -1,0 +1,20 @@
+diff --git a/src/shell_display.cpp b/src/shell_display.cpp
+index 621a570..1ade6c9 100644
+--- a/src/shell_display.cpp
++++ b/src/shell_display.cpp
+@@ -219,7 +219,14 @@ void ShellApp::handle_display_touch_gesture(const DisplayService::TouchGestureIn
+     }
+ 
+     const bool started_from_bottom = has_gesture_area(info.start_area, SUPER_TOUCH_GESTURE_AREA_BOTTOM_EDGE);
+-    const bool started_from_top = has_gesture_area(info.start_area, SUPER_TOUCH_GESTURE_AREA_TOP_EDGE);
++    bool started_from_top = has_gesture_area(info.start_area, SUPER_TOUCH_GESTURE_AREA_TOP_EDGE);
++#if defined(__EMSCRIPTEN__)
++    // Browser-hosted apps commonly place navigation controls in the upper-left
++    // corner. Do not let the shell's status-peek gesture compete for that input.
++    if (info.start_x < get_gesture_vertical_edge_px(owner_.get_environment().height_px)) {
++        started_from_top = false;
++    }
++#endif
+     if (info.event_type == DisplayService::TouchGestureEventType::Press) {
+         if (started_from_top && can_start_status_peek()) {
+             ++status_peek_generation_;

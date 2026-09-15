@@ -6,6 +6,11 @@
       "name": "lvgl-validate-image-transform-stride",
       "destination": "external/lvgl",
       "file": "patches/lvgl/0001-skip-empty-image-transform.patch"
+    },
+    {
+      "name": "brookesia-system-super-reserve-wasm-top-left-navigation",
+      "destination": "esp-brookesia/system/brookesia_system_super",
+      "file": "patches/brookesia_system_super/0001-reserve-wasm-top-left-navigation.patch"
     }
   ],
   "registry": [
