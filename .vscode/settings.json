@@ -9,6 +9,7 @@
         "Emscripten",
         "espressif",
         "LVGL",
+        "malloc",
         "PYTHONUTF",
         "superos"
     ],

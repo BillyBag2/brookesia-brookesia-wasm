@@ -22,6 +22,10 @@ LVGL output, and SuperOS environment as 720 x 1280 portrait.
 Portable appearance settings such as density and font scale are compiled directly
 from `brookesia-brookesia/boards/<board>/common`, rather than `.deps`, so the
 native firmware and browser build use the same board profile.
+The shell and Settings UI resources are overlaid from the firmware submodule's
+sparse `resource_overrides` tree after the published components stage their
+packages. Native firmware calls the same CMake helper, so layout changes apply to
+both builds without modifying `.deps` or depending on generated `littlefs` state.
 
 The selected board's `wasm/apps.cmake` manually allowlists registered applications.
 TAB5 currently enables `brookesia_app_settings`, compiled from its pinned source in

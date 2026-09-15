@@ -152,6 +152,20 @@ if(superos_resource_targets OR runtime_app_targets)
     add_dependencies(bb_superos ${superos_resource_targets} ${runtime_app_targets})
 endif()
 
+# Apply the firmware project's sparse overrides after the published components
+# stage their baseline packages. Native and WASM builds use the same helper and
+# source tree while retaining independent generated staging directories.
+set(BROOKESIA_FIRMWARE_ROOT "${REPO_ROOT}/brookesia-brookesia")
+include("${BROOKESIA_FIRMWARE_ROOT}/cmake/resource_overrides.cmake")
+brookesia_add_resource_overrides_target(bb_superos_apply_resource_overrides
+    SOURCE_DIR "${BROOKESIA_FIRMWARE_ROOT}/resource_overrides"
+    SYSTEM_ROOT "${CMAKE_BINARY_DIR}/brookesia"
+    LITTLEFS_ROOT "${CMAKE_BINARY_DIR}/brookesia/fs/littlefs"
+    DEPENDS ${superos_resource_targets} ${runtime_app_targets})
+add_dependencies(bb_superos bb_superos_apply_resource_overrides)
+set_property(TARGET bb_superos APPEND PROPERTY LINK_DEPENDS
+    ${bb_superos_apply_resource_overrides_FILES})
+
 # Keep Emscripten's generated diagnostic shell and provide a cleaner static
 # launcher beside it for normal use.
 set(BROOKESIA_HOST_TITLE "Brookesia-Brookesia SuperOS")
