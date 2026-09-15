@@ -11,7 +11,8 @@
         "LVGL",
         "malloc",
         "PYTHONUTF",
-        "superos"
+        "superos",
+        "Waveshare"
     ],
     "peacock.color": "#a71414",
     "workbench.colorCustomizations": {

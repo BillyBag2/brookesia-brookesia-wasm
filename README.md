@@ -412,8 +412,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\host.ps1
 ```
 
 The script finds every complete HTML, JavaScript, and WebAssembly triplet under
-`build`, copies them to the ignored `output` directory, creates `output/index.html`,
-and opens that page in the default browser. Matching `.data` archives and optional
+`build`, copies them to the ignored `output` directory, creates `output/index.html`
+from `cmake/wasm-index.html.in`, and opens that page in the default browser. Edit
+that template to change the landing-page presentation or repository links. Matching `.data` archives and optional
 `*-host.html` launchers are copied too; the index prefers the cleaner host page.
 It serves `output` until you press Ctrl+C. Most Windows terminals make the printed URL
 clickable. Use `host.ps1 -Port 8080` to select another port or

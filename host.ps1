@@ -78,7 +78,7 @@ foreach ($build in $browserBuilds) {
     }
 }
 
-$links = $browserBuilds |
+$buildCards = $browserBuilds |
     Sort-Object Name |
     ForEach-Object {
         $name = [System.Net.WebUtility]::HtmlEncode($_.StagedName)
@@ -93,20 +93,40 @@ $links = $browserBuilds |
             "$($_.Name).html"
         }
         $htmlName = [System.Net.WebUtility]::HtmlEncode($hostName)
-        "    <li><a href=`"$name/$htmlName`">$name</a> <small>($buildPath)</small></li>"
-    }
-$index = @"
-<!doctype html>
-<html lang="en">
-<head><meta charset="utf-8"><title>Brookesia WASM builds</title></head>
-<body>
-  <h1>Brookesia WASM builds</h1>
-  <ul>
-$($links -join [Environment]::NewLine)
-  </ul>
-</body>
-</html>
+        $displayName = switch -Regex ($_.StagedName) {
+            '^bb-superos' { "Brookesia-Brookesia SuperOS"; break }
+            '^eb-superos' { "ESP-Brookesia SuperOS"; break }
+            '^bb-layout' { "Brookesia layout gallery"; break }
+            default { $_.StagedName }
+        }
+        $description = switch -Regex ($_.StagedName) {
+            '^bb-superos' { "Run the board-aware SuperOS build using the Brookesia-Brookesia application and resources."; break }
+            '^eb-superos' { "Run the ESP-Brookesia reference SuperOS build in the browser."; break }
+            '^bb-layout' { "Explore the portable Brookesia layout and widget examples."; break }
+            default { "Open this WebAssembly build in the browser." }
+        }
+        $displayName = [System.Net.WebUtility]::HtmlEncode($displayName)
+        $description = [System.Net.WebUtility]::HtmlEncode($description)
+        @"
+        <article class="build-card">
+          <div class="build-card__body">
+            <span class="build-card__eyebrow">WebAssembly demo</span>
+            <h2>$displayName</h2>
+            <p>$description</p>
+          </div>
+          <div class="build-card__footer">
+            <span class="build-path">$buildPath</span>
+            <a class="launch-button" href="$name/$htmlName">Launch demo <span aria-hidden="true">&rarr;</span></a>
+          </div>
+        </article>
 "@
+    }
+$indexTemplatePath = Join-Path $PSScriptRoot "cmake\wasm-index.html.in"
+if (-not (Test-Path -LiteralPath $indexTemplatePath -PathType Leaf)) {
+    throw "The WASM landing-page template was not found: $indexTemplatePath"
+}
+$index = [System.IO.File]::ReadAllText($indexTemplatePath)
+$index = $index.Replace("@BROOKESIA_BUILD_CARDS@", ($buildCards -join [Environment]::NewLine))
 [System.IO.File]::WriteAllText((Join-Path $outputDirectory "index.html"), $index, [System.Text.UTF8Encoding]::new($false))
 Write-Host "Staged browser builds: $(($browserBuilds | Sort-Object StagedName | ForEach-Object StagedName) -join ', ')"
 
