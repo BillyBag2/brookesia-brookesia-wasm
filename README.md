@@ -1,11 +1,31 @@
 # Brookesia WebAssembly
 
-This project aims to run brookesia-brookesia in a web browser. The
-first target is a fast layout and interaction preview for Brookesia/LVGL user
-interfaces. Application logic written in portable C++ can run in the browser when
-it is compiled to WebAssembly with Emscripten.
+This project runs Brookesia/LVGL interfaces and a basic Brookesia-Brookesia
+SuperOS desktop in a web browser. The browser build uses Emscripten and shares
+portable C++ application, appearance, and board configuration with the native
+ESP-IDF firmware where practical.
 
-## Important constraint
+## What works
+
+- The Brookesia layout example builds and runs in the browser with pointer input.
+- The upstream-style ESP-Brookesia SuperOS example (`eb-superos`) reaches its
+  desktop.
+- The Brookesia-Brookesia SuperOS example (`bb-superos`) reaches the TAB5-shaped
+  portrait desktop and can launch the Settings app.
+- Settings resources, fonts, PNG and JPEG images, and the LittleFS application
+  tree are packaged into Emscripten's virtual filesystem.
+- The selected board supplies common native/WASM appearance settings and WASM
+  display dimensions. `m5stack_tab5` is currently the only board target.
+- Browser display, touch/pointer input, storage, and the service interfaces needed
+  by the current desktop and Settings flow have WASM implementations or shims.
+- Dependency versions and project patches are reproducibly assembled under
+  `.deps` from `wasm-components.lock.json`.
+- PowerShell scripts fetch dependencies, build each example, and assemble a
+  static site in `output`.
+- GitHub Actions builds all three examples for pull requests and `main`, uploads
+  the site as an artifact, and publishes successful `main` builds to GitHub Pages.
+
+## Current limitations
 
 WebAssembly is a native compilation target for C and C++, but a browser cannot run
 an ESP-IDF firmware image or an ESP-specific ELF application unchanged. Code that
@@ -16,14 +36,18 @@ Brookesia's `brookesia_runtime_elf` component is currently ESP-IDF-only, so ESP 
 applications cannot be reused in the browser. The framework fork does contain
 `brookesia_runtime_wasm`, which executes application packages compiled as
 WebAssembly. This is distinct from compiling Brookesia itself to WebAssembly with
-Emscripten. The port needs to verify that the runtime backend and its underlying
-WASM engine work when nested inside the browser build.
+Emscripten. The runtime backend and its underlying WASM engine have not yet been
+verified when nested inside the browser build.
 
-For the first visual milestone, statically linking one C++ demo app remains the
-simplest route. The next milestone should compile a portable C++ app against the
-Brookesia WASM application ABI and load it through `brookesia_runtime_wasm`. Avoid
-inventing an Emscripten dynamic-linking ABI unless the existing application runtime
-cannot support the browser target.
+The current browser applications are statically linked into the main Emscripten
+module. Loading independently packaged applications through
+`brookesia_runtime_wasm` inside the browser build has not been validated.
+
+Audio capture and playback are not implemented for the browser HAL. Native audio
+also depends on completing and validating the target's hardware driver path.
+Networking, persistent browser storage, keyboard and wheel input, and the full
+native application list are not yet supported or fully tested. Browser performance
+and rendering can also differ from the ESP32/PPA path used by the native target.
 
 ## Repository dependencies
 
@@ -79,10 +103,10 @@ to run `fetch.ps1`.
 
 ## WASM source tree and fetching
 
-The WASM build should assemble a correctly shaped source tree without invoking
+The WASM build assembles a correctly shaped source tree without invoking
 ESP-IDF or using the firmware project's generated `managed_components` directory.
 A committed `wasm-components.lock.json` lists every source, exact version or Git
-commit, integrity hash, and destination. A standalone fetch script will create the
+commit, integrity hash, and destination. The standalone fetch script creates the
 tree under `.deps/`; that directory is generated and should not be committed.
 The lock file also lists repository-owned patches applied to assembled components.
 Patch application is idempotent and fails if a pinned dependency no longer matches,
@@ -191,9 +215,9 @@ firmware checkout. Hardware-only entries from the firmware's complete dependency
 set do not need to be downloaded.
 
 `sources/registry/additional_components` contains published dependencies required
-only by the browser build. Initially this means `brookesia_runtime_wasm` and its
-`wasm-micro-runtime` dependency, and neither is required for the first statically
-linked layout milestone.
+only by the browser build. This includes `brookesia_runtime_wasm` and its
+`wasm-micro-runtime` dependency, although the current statically linked examples do
+not use the nested application runtime.
 
 `sources/git` contains components fetched from pinned Git commits. The WASM HAL and
 SuperOS component are obtained from the `BillyBag2/esp-brookesia` fork at the same
@@ -256,16 +280,17 @@ as a reference and development checkout. The generated sparse copy is better for
 assembling the locked WASM dependency tree.
 
 The layout example's `examples/brookesia-brookesia/layout/CMakeLists.txt` belongs
-to this project. It should add the generated
-components in dependency order and use the upstream top-level CMake file as a
+to this project. It adds the generated components in dependency order and uses the
+upstream top-level CMake file as a
 reference. This avoids coupling released components to whatever component versions
 happen to be present on the fork's `master` branch.
 
 ## SuperOS component builds
 
-There are two minimal SuperOS targets. Both deliberately disable registered and
-package app discovery; their acceptance target is an empty but fully initialized
-SuperOS desktop.
+There are two SuperOS browser targets. `eb-superos` provides the framework-oriented
+desktop reference. `bb-superos` reproduces the board-selected product desktop and
+includes its selected registered applications and packaged resources; TAB5
+currently includes Settings.
 
 - `build-eb-superos.ps1` builds `examples/esp-brookesia/superos` from the complete
   `thirdparty/esp-brookesia` checkout.
@@ -359,14 +384,14 @@ This project has been built on Windows with:
 | Windows PowerShell | 5.1.26100.9278 |
 | Python | 3.13.11 |
 
-## First browser test
+## Layout browser example
 
-The first target is `brookesia_layout_test`. It uses Brookesia's existing GUI
-example registry and runner rather than choosing a full product app yet. The
+The `brookesia_layout_test` target uses Brookesia's existing GUI example registry
+and runner. The
 example menu covers JSON layouts, widgets, styles, events, and pointer input, so it
-is a useful test of the shared UI code. It also keeps Wi-Fi and other application
-services out of the first build. Once this works, `brookesia_app_settings` is a
-good first complete app because it is already used by the firmware project.
+is a useful focused test of the shared UI code. It keeps Wi-Fi and other product
+services out of this smaller build; the complete Settings integration is exercised
+by `bb-superos`.
 
 Fetch the locked sources and build:
 
@@ -435,109 +460,28 @@ compile against the reference submodule. Delete `build/bb-layout` whenever a com
 fresh CMake configuration is required. Use `fetchClean.ps1` only when the fetched
 source tree itself must also be recreated.
 
-## Roadmap
+## Future work
 
-### 1. Define the first runnable target
+- Complete the browser HAL for audio, networking, persistent storage, and any
+  additional device services required by new applications.
+- Finish and validate native TAB5 audio drivers, keeping portable application code
+  shared with the browser build.
+- Add more applications selectively through each board's `apps.cmake` rather than
+  assuming every native application is browser-compatible.
+- Test `brookesia_runtime_wasm` as a nested runtime and establish a supported
+  package format for independently built browser applications.
+- Add keyboard, wheel, clipboard, and other browser integrations when an
+  application needs them.
+- Profile startup, rendering, memory consumption, and download size, then add a
+  release-oriented Emscripten configuration.
+- Compare native and browser screenshots and interactions at the same board
+  resolution, including fonts, touch targets, transitions, and resources.
+- Add automated browser smoke tests and retain native firmware builds as the
+  hardware parity check.
+- Add further boards by supplying common appearance configuration, native board
+  integration, a WASM board target, and a separate build directory.
 
-- Build the Brookesia GUI example menu as the first acceptance test.
-- Fix the logical display size, colour depth, input methods, and required assets.
-- List which parts of the screen use portable Brookesia/LVGL APIs and which call
-  ESP-IDF directly.
-
-### 2. Establish the Emscripten build
-
-- Install and pin Emscripten (`emsdk`) and use CMake for the browser build.
-- Reproduce the dependency ordering and `BROOKESIA_BUILD_*` options from the
-  framework's host CMake build against the generated, version-locked tree.
-- First compile its default host components with Emscripten, then a minimal program
-  linked to `brookesia::all` into `.wasm`, JavaScript, and HTML.
-- Add development and release presets; enable useful assertions and source maps in
-  development builds.
-- Serve the output through a local HTTP server rather than opening the HTML file
-  directly.
-
-### 3. Bring up the existing WASM HAL and LVGL
-
-- Enable `BROOKESIA_BUILD_HAL_WASM` and validate the existing SDL2 display and input
-  implementation. It already selects Emscripten SDL2, Fetch, Asyncify, and memory
-  growth options.
-- Enable `BROOKESIA_BUILD_GUI_LVGL`, provide its required `lvgl` CMake target, and
-  render to the browser canvas.
-- Verify that pointer/touch events from `DisplayWasmDevice` reach LVGL; add keyboard
-  and wheel mappings only if the chosen UI needs them.
-- Drive `lv_timer_handler()` from an Emscripten animation-frame callback so the
-  browser event loop is never blocked.
-- Verify resizing, display scaling, frame timing, and basic input before adding
-  Brookesia.
-
-### 4. Compile the required Brookesia components
-
-- Start with the existing host defaults, then enable `brookesia_hal_wasm`,
-  `brookesia_gui_lvgl`, `brookesia_system_core`, and `brookesia_system_super` in
-  dependency order.
-- Use the existing `BROOKESIA_BUILD_*` CMake options and exported
-  `brookesia::<component>` targets.
-- Isolate ESP-IDF headers and APIs behind feature checks and platform adapters.
-- Prefer small portability changes in the Brookesia fork that can later be offered
-  upstream.
-
-### 5. Complete the platform abstraction
-
-- Audit `brookesia_hal_wasm` coverage for time, tasks, locks, logging, files,
-  persistent settings, networking, and every device service used by the selected
-  UI application.
-- Extend its browser implementations or deterministic simulators where coverage is
-  missing. Use the main browser loop for the first milestone; add WebAssembly
-  threads only if profiling proves they are needed.
-- Keep ESP-IDF implementations behind the same interfaces so application and UI
-  code can build for both targets.
-
-### 6. Package resources
-
-- Reuse Brookesia's GUI documents and LVGL asset conversion where it is portable.
-- Package fonts, images, JSON, and application resources into Emscripten's virtual
-  filesystem.
-- Use browser persistence such as IDBFS only for data that must survive reloads.
-- Check asset paths, colour formats, memory use, and initial download size.
-
-### 7. Port C++ applications
-
-- Define a small lifecycle such as `create`, `start`, `update`, `suspend`, and
-  `destroy` that does not expose ESP-IDF types.
-- Compile the first applications into the main WebAssembly module and register
-  them with a browser-compatible launcher.
-- Replace direct hardware access with injected services or desktop/browser mocks.
-- Enable `brookesia_runtime_manager` and `brookesia_runtime_wasm`, then verify the
-  existing WASM application package lifecycle inside the Emscripten build.
-- Build a second portable C++ app as a guest WASM application using the runtime's
-  supported ABI and packaging tools. Test loading, events, cleanup, errors, and
-  repeated launches.
-
-### 8. Add browser integration
-
-- Provide a small HTML/JavaScript shell containing the canvas, loading state,
-  console output, and optional device controls.
-- Add JavaScript bindings only at the platform boundary; keep layout and
-  application behaviour in shared C++.
-- Handle focus, clipboard, browser storage, URL parameters, and error reporting as
-  needed by the chosen demo.
-
-### 9. Verify parity
-
-- Run the same UI scenario on ESP hardware and in the browser.
-- Compare screenshots at the target resolution and test navigation, touch targets,
-  animations, fonts, and resource loading.
-- Add automated browser smoke tests and a build check for both Emscripten and the
-  existing ESP-IDF project.
-
-### 10. Publish a repeatable preview
-
-- Pin Emscripten, LVGL, and Brookesia revisions.
-- Document one-command configure, build, and serve workflows.
-- Add CI that builds the WebAssembly bundle and publishes a static preview, for
-  example with GitHub Pages.
-
-## Suggested project shape
+## Repository layout
 
 ```text
 brookesia-brookesia/   # existing ESP-IDF firmware project (submodule)
@@ -567,7 +511,5 @@ examples/
   esp-brookesia/       # upstream examples
 ```
 
-The first useful milestone is deliberately narrow: one statically linked C++ app,
-one Brookesia screen, mouse/touch input, and its real assets rendered in a browser.
-That milestone will expose the actual ESP-IDF dependencies before enabling and
-testing the existing WASM application runtime.
+The generated `.deps`, `build`, and `output` directories can be recreated from the
+checked-in lock file, build scripts, and source configuration.

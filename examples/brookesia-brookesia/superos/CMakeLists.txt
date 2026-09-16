@@ -126,7 +126,7 @@ target_link_libraries(bb_superos PRIVATE
     brookesia::gui_lvgl
     brookesia::hal_wasm
     ${BROOKESIA_WASM_APP_TARGETS}
-    "$<LINK_LIBRARY:WHOLE_ARCHIVE,brookesia::service_device>")
+    brookesia::service_device)
 if(BROOKESIA_WASM_APP_TARGETS)
     target_compile_definitions(bb_superos PRIVATE BROOKESIA_WASM_HAS_REGISTERED_APPS=1)
 else()
