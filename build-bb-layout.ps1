@@ -8,8 +8,6 @@ param(
 $ErrorActionPreference = "Stop"
 $projectDirectory = Join-Path $PSScriptRoot "examples\brookesia-brookesia\layout"
 
-$emsdkEnvironment = Join-Path $EmsdkPath "emsdk_env.ps1"
-
 if (-not (Get-Command cmake -ErrorAction SilentlyContinue)) {
     throw "CMake was not found on PATH. Install CMake and open a new terminal before building."
 }
@@ -44,6 +42,7 @@ foreach ($source in $requiredSources) {
 }
 
 if (-not (Get-Command emcmake -ErrorAction SilentlyContinue)) {
+    $emsdkEnvironment = Join-Path $EmsdkPath "emsdk_env.ps1"
     if (-not (Test-Path -LiteralPath $emsdkEnvironment -PathType Leaf)) {
         throw "Emscripten is not active and its environment script was not found: $emsdkEnvironment. Pass -EmsdkPath if emsdk is installed elsewhere."
     }
