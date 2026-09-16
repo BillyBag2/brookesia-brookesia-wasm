@@ -2,7 +2,8 @@
 param(
     [ValidateRange(1, 65535)]
     [int]$Port = 8000,
-    [switch]$NoBrowser
+    [switch]$NoBrowser,
+    [switch]$PublishOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -12,8 +13,16 @@ $outputDirectory = Join-Path $PSScriptRoot "output"
 if (-not (Test-Path -LiteralPath $buildDirectory -PathType Container)) {
     throw "The build directory was not found. Run a build script first."
 }
-if (-not (Test-Path -LiteralPath $outputDirectory -PathType Container)) {
-    New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
+$resolvedOutputDirectory = [System.IO.Path]::GetFullPath($outputDirectory)
+$expectedOutputDirectory = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "output"))
+if ($resolvedOutputDirectory -ne $expectedOutputDirectory) {
+    throw "Refusing to recreate an unexpected output directory: $resolvedOutputDirectory"
+}
+if (Test-Path -LiteralPath $resolvedOutputDirectory) {
+    Get-ChildItem -LiteralPath $resolvedOutputDirectory -Force |
+        Remove-Item -Recurse -Force
+} else {
+    New-Item -ItemType Directory -Path $resolvedOutputDirectory -Force | Out-Null
 }
 
 $browserBuilds = @(
@@ -129,6 +138,11 @@ $index = [System.IO.File]::ReadAllText($indexTemplatePath)
 $index = $index.Replace("@BROOKESIA_BUILD_CARDS@", ($buildCards -join [Environment]::NewLine))
 [System.IO.File]::WriteAllText((Join-Path $outputDirectory "index.html"), $index, [System.Text.UTF8Encoding]::new($false))
 Write-Host "Staged browser builds: $(($browserBuilds | Sort-Object StagedName | ForEach-Object StagedName) -join ', ')"
+
+if ($PublishOnly) {
+    Write-Host "Static site ready at $outputDirectory"
+    return
+}
 
 $python = Get-Command python -ErrorAction SilentlyContinue
 $pythonArguments = @("-m", "http.server", $Port, "--bind", "127.0.0.1")

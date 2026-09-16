@@ -422,6 +422,14 @@ clickable. Use `host.ps1 -Port 8080` to select another port or
 the HTML directly from the filesystem because browsers restrict resources loaded
 by WASM.
 
+Use `host.ps1 -PublishOnly` to assemble the same static `output` directory without
+starting a server or opening a browser. The `Build and publish WASM examples`
+GitHub Actions workflow fetches the locked dependencies, builds `bb-layout`,
+`eb-superos`, and the `m5stack_tab5` `bb-superos`, then runs this publishing mode.
+Every successful workflow uploads `output` as a downloadable artifact. Successful
+`main` builds also deploy that exact directory to the repository's GitHub Pages
+site; pull requests build and upload an artifact without deploying it.
+
 The build deliberately consumes only `.deps/assembled`; it does not use ESP-IDF or
 compile against the reference submodule. Delete `build/bb-layout` whenever a completely
 fresh CMake configuration is required. Use `fetchClean.ps1` only when the fetched

@@ -236,6 +236,10 @@
           <strong>Brookesia-Brookesia</strong>
           <span>Native SuperOS application and board resources</span>
         </a>
+        <a class="repo-link" href="https://github.com/BillyBag2/brookesia-brookesia/releases">
+          <strong>Brookesia-Brookesia releases</strong>
+          <span>Download published native firmware builds</span>
+        </a>
         <a class="repo-link" href="https://github.com/BillyBag2/esp-brookesia">
           <strong>ESP-Brookesia WASM fork</strong>
           <span>WebAssembly-compatible framework components</span>

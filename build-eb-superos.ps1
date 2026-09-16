@@ -7,15 +7,17 @@ $ErrorActionPreference = "Stop"
 $sourceDirectory = Join-Path $PSScriptRoot "examples\esp-brookesia\superos"
 $buildDirectory = Join-Path $PSScriptRoot "build/eb-superos"
 $emsdkEnvironment = Join-Path $EmsdkPath "emsdk_env.ps1"
-if (-not (Test-Path -LiteralPath $emsdkEnvironment -PathType Leaf)) {
-    throw "Emscripten environment script not found: $emsdkEnvironment. Pass -EmsdkPath to select your SDK."
-}
 foreach ($tool in @("cmake", "ninja")) {
     if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
         throw "$tool was not found on PATH. Install it before building."
     }
 }
-. $emsdkEnvironment
+if (-not (Get-Command emcmake -ErrorAction SilentlyContinue)) {
+    if (-not (Test-Path -LiteralPath $emsdkEnvironment -PathType Leaf)) {
+        throw "Emscripten is not active and its environment script was not found: $emsdkEnvironment. Pass -EmsdkPath to select your SDK."
+    }
+    . $emsdkEnvironment
+}
 $configureArguments = @("cmake", "-S", $sourceDirectory, "-B", $buildDirectory,
     "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Debug")
 if ($Fresh) {
