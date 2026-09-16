@@ -1,0 +1,39 @@
+Prevent the software image renderer from calculating a row buffer for an empty
+clipped area or a decoded color format with no pixel size. WebAssembly traps
+when the resulting zero stride is used as an integer divisor.
+
+--- a/src/draw/sw/lv_draw_sw_img.c
++++ b/src/draw/sw/lv_draw_sw_img.c
+@@ -489,6 +489,11 @@ static void transform_and_recolor(lv_draw_task_t * t, const lv_draw_image_dsc_t
+     int32_t blend_w = lv_area_get_width(&blend_area);
+     int32_t blend_h = lv_area_get_height(&blend_area);
+ 
++    /* An image can retain a draw task while its clipped transition area collapses. */
++    if(blend_w <= 0 || blend_h <= 0) {
++        return;
++    }
++
+     bool do_recolor = draw_dsc->recolor_opa > LV_OPA_MIN;
+     if(cf == LV_COLOR_FORMAT_L8 || cf == LV_COLOR_FORMAT_A8) {
+         blend_dsc.color = draw_dsc->recolor;
+@@ -495,6 +500,11 @@ static void transform_and_recolor(lv_draw_task_t * t, const lv_draw_image_dsc_t
+             cf_final == LV_COLOR_FORMAT_RGB565_SWAPPED) cf_final = LV_COLOR_FORMAT_RGB565A8;
+     else if(cf_final == LV_COLOR_FORMAT_L8) cf_final = LV_COLOR_FORMAT_AL88;
+ 
++    uint32_t cf_size = lv_color_format_get_size(cf_final);
++    if(cf_final != LV_COLOR_FORMAT_RGB565A8 && cf_size == 0) {
++        return;
++    }
++
+     uint8_t * transformed_buf;
+     int32_t buf_h;
+     if(cf_final == LV_COLOR_FORMAT_RGB565A8) {
+@@ -505,7 +515,7 @@ static void transform_and_recolor(lv_draw_task_t * t, const lv_draw_image_dsc_t
+         transformed_buf = lv_malloc(buf_stride * buf_h);
+     }
+     else {
+-        uint32_t buf_stride = blend_w * lv_color_format_get_size(cf_final);
++        uint32_t buf_stride = blend_w * cf_size;
+         buf_h = MAX_BUF_SIZE / buf_stride;
+         if(buf_h > blend_h) buf_h = blend_h;
+         transformed_buf = lv_malloc(buf_stride * buf_h);

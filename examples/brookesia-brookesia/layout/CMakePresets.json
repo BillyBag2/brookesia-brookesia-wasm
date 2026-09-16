@@ -1,0 +1,21 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "wasm-debug",
+      "displayName": "Brookesia WASM (Debug)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/../../../build/bb-layout",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "wasm-debug",
+      "configurePreset": "wasm-debug",
+      "targets": ["brookesia_layout_test"]
+    }
+  ]
+}
