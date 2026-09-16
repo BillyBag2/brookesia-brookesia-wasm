@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Check out source and submodules
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -54,7 +54,7 @@ jobs:
         run: ./host.ps1 -PublishOnly
 
       - name: Upload WASM site artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: brookesia-wasm-site-${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || github.sha }}
           path: output
@@ -63,11 +63,11 @@ jobs:
 
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload GitHub Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: output
 
@@ -83,4 +83,4 @@ jobs:
     steps:
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
